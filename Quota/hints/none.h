@@ -39,7 +39,7 @@
    this includes the needed xdr routines from within this module */
 /* #define MY_RPC /* */
 
-/* name of the structur that getmntent(3) uses */
+/* name of the structure used by getmntent(3) */
 #define MNTENT mntent
  
 /* name of the status entry in struc getquota_rslt and

@@ -3,43 +3,20 @@ package Quota;
 require Exporter;
 use AutoLoader;
 require DynaLoader;
-@ISA = qw(Exporter DynaLoader);
-# Items to export into callers namespace by default
-# (move infrequently used names to @EXPORT_OK below)
-@EXPORT = ();
-# Other items we are prepared to export if requested
-@EXPORT_OK = qw();
 
-sub AUTOLOAD {
-    local($constname);
-    ($constname = $AUTOLOAD) =~ s/.*:://;
-    $val = constant($constname, @_ ? $_[0] : 0);
-    if ($! != 0) {
-	if ($! =~ /Invalid/) {
-	    $AutoLoader::AUTOLOAD = $AUTOLOAD;
-	    goto &AutoLoader::AUTOLOAD;
-	}
-	else {
-	    ($pack,$file,$line) = caller;
-	    die "Your vendor has not defined Fcntl macro $constname, ".
-	        "used at $file line $line.\n";
-	}
-    }
-    eval "sub $AUTOLOAD { $val }";
-    goto &$AUTOLOAD;
-}
+@ISA = qw(Exporter DynaLoader);
+@EXPORT = ();
+
+$VERSION = '0.3a';
 
 bootstrap Quota;
 
-# Preloaded methods go here.  Autoload methods go after __END__, and are
-# processed by the autosplit program.
+use Carp;
+require 'errno.ph'; eval '&EPERM;'; &strerr_defs if $@;
 
 ##
 ##  Get block device for locally mounted file system
 ##
-
-require "errno.ph";
-use Carp;
 
 sub getdev {
   ($#_ > 0) && croak("Usage: Quota::getdev(path)");
@@ -64,7 +41,7 @@ sub getdev {
 ##  !! Solaris the pathname of the quotas file on disk, OSF/1 any pathname
 ##
 sub getqcarg {
-  ($#_ > 0) && croak("Usage: Quota::getdev(path)");
+  ($#_ > 0) && croak("Usage: Quota::getqcarg(path)");
   my($dev) = (stat(($_[0] || ".")))[0];
   my($ret) = undef;
   my($argtyp) = getqcargtype();
@@ -104,6 +81,19 @@ sub strerr {
   $str;
 }
 
+##  only in case the require for errno fails
+##  this is ridiculous, but I didn't get it to work with HP-UX 10.10
+
+sub strerr_defs {
+  eval 'sub EPERM {1;}';
+  eval 'sub ESRCH {3;}';
+  eval 'sub ENODEV {19;}';
+  eval 'sub EINVAL {22;}';
+  eval 'sub ENOTTY {25;}';
+  eval 'sub EUSERS {68;}';
+}
+
 package Quota; # return to package Quota so AutoSplit is happy
 1;
 __END__
+

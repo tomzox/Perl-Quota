@@ -1,23 +1,12 @@
 #!../../perl
-#
-# You should define two perl variables:
-#
-#    $inc    contains any includes or defines (-I or -D) that are
-#               needed to compile libcurses applications
-#    $libs   contains any libraries or library paths (-l or -L) that are
-#               needed to compile libcurses applications
-#
-# You can choose include and libraries here
-# Shouldn't be neccessary on most systems
 
-# SunOS, IRIX 5.3
-$inc  = "";
-$libs = "-lrpcsvc";
+chop($os = `uname -rs 2>/dev/null`);
+if($os =~ /^SunOS 4\.1/) { $config='sunos_4_1.h'; }
+elsif($os =~ /^SunOS 5/) { $config='solaris_2.h'; }
+elsif($os =~ /^HP-UX (A\.09|B\.10)/) { $config='hpux_9+10.h'; }
+elsif($os =~ /^IRIX 5/)  { $config='irix_5.h'; }
 
-# HP-UX 9.01 has no shared RPC library, so we include our own
-# Solaris 2.4 lacks some standard xdr routines
-# $inc  = "";
-# $libs = "";
+printf "Using hints/$config for config.h\n" if defined($config);
 
 ###--------------------------------------------------------------------------#
 ### You shouldn't need to change anything below
@@ -27,19 +16,27 @@ BEGIN { push(@INC, "../../lib"); }
 
 use ExtUtils::MakeMaker;
 
-&WriteMakefile(NAME      => 'Quota',
-	       INC       => $inc,
-	       LIBS      => [ $libs ],
-	       H         => [ 'config.h' ],
-	       VERSION   => 'a0',
-	       clean     => { FILES => 'config.h' },
+&WriteMakefile('NAME'         => 'Quota',
+	       'INC'          => "",
+	       'LIBS'         => [ '-lrpcsvc' ],
+	       'H'            => [ 'config.h' ],
+	       'VERSION_FROM' => 'Quota.pm',
+	       'clean'        => { FILES => 'config.h' },
 );
 
 sub MY::postamble
 {
-    '
+    if(!defined $config) {
+      '
 config.h:
 	@echo "You need to make a config.h.  See the INSTALL document.";
 	@false
-    '
+      '
+    }
+    else {
+      "
+config.h:
+	if [ ! -r config.h ] ; then ln -s hints/$config config.h; fi
+      "
+    }
 }

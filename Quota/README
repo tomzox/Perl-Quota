@@ -1,4 +1,4 @@
-Sys::Quota/README  v0.2a  Mar/96  tnzoerne
+Sys::Quota/README  v0.3a  Mar/96  tnzoerne
 
 Quota extension module for Perl
 -------------------------------
@@ -7,11 +7,12 @@ Author:   Tom Zoerner
           IMMD4, CSD, University of Erlangen-Nuernberg
           Tom.Zoerner@informatik.uni-erlangen.de
 
-Version:   0.2a  (alpha)
-Date:      Mar/06/1996
+Version:   0.3a  (alpha)
+Date:      Nov/17/1996
 DSLI-code: adcf
-Supported: SunOS 4.1.3, HP-UX 9.0, IRIX 5.3, Solaris 2.4, OSF/1
-Location:  ftp://franz.ww.tu-berlin.de/pub/authors/id/TOMZO/Quota-0.2a.tar.gz
+Supported: SunOS 4.1.3, HP-UX 9.0 & 10.10, IRIX 5.3, Solaris 2.4&5, OSF/1
+           Linux 2.0 in work
+Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 Author:    TOMZO  Tom Zoerner <Tom.Zoerner@informatik.uni-erlangen.de>
 Copyright: none / Public Domain
 
@@ -23,7 +24,7 @@ block device of the according file system.
 
 -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 Usage:
-           [Also read "CHANGES" if you used an earlier version!]
+           [Also read "CHANGES" if you used the 0.1a version!]
 
 ($block_curr, $block_soft, $block_hard, $block_timelimit,
  $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
@@ -40,7 +41,8 @@ setqlim(dev,uid,bs,bh,fs,fh[,tlo])
 
 sync([$dev])
 	have the kernel update the quota file on disk or all quota files
-	if no argument given.
+	if no argument given (the latter doesn't work on all systems,
+	namely HP-UX 10.10)
 
 ($block_curr, $block_soft, $block_hard, $block_timelimit,
  $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =

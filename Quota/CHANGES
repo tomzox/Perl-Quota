@@ -1,11 +1,19 @@
 
+Changes in 0.3a:
+- started port for Linux 2.0; still needs some work.
+  Compiles correctly, but RPC call fails.
+- workarounds for HP-UX/10 bug in test script
+  (SYNC without arguments doesn't work)
+- some cleanup in Query.pm
+  fixes 0.2a's problems with the autoloader under perl-5.003
+
 Changes in 0.2a:
 - need generic getqcarg instead of getdev, because:
-- added support for Solaris, OSF/1 (which work without access to block device)
-  Required extensive changes to the code.
+- added support for Solaris, OSF/1 (which operate without access to
+  the according block device) Required extensive code changes.
 - getqcarg recognizes if path points into a NFS file system
 - query() may take NFS path as argument (in form host:/path)
 
-Thanks to David Lee <T.D.Lee@durham.ac.uk> for alpha-testing and suggesting
-the last two additions.
+  Thanks to David Lee <T.D.Lee@durham.ac.uk> for alpha-testing on Solaris
+  and suggesting the two latter improvements.
 

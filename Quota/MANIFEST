@@ -5,10 +5,11 @@ Makefile.PL
 Quota.pm
 Quota.xs
 README
+test/quotatest
 hints/dec_osf_3.h
-hints/hpux_9.h
+hints/hpux_9+10.h
 hints/irix_5.h
+hints/linux.h
 hints/none.h
 hints/solaris_2.h
 hints/sunos_4_1.h
-test/quotatest
