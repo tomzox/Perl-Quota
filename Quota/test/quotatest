@@ -1,19 +1,18 @@
 #!/local/bin/perl5
 
 use Quota;
-require "errno.ph";
 
-print "Enter filesystem to get quota for (default /home.stand): ";
+print "Enter path to get quota for (NFS possible; default '.'): ";
 chop($path = <STDIN>);
-$path = "/home.stand" unless $path =~ /\S/;
-$dev = Quota::getdev($path) || die "$path: $!\n";
-print "Using device $dev\n";
+$path = "." unless $path =~ /\S/;
+$dev = Quota::getqcarg($path) || die "$path: $!\n";
+print "Using device/argument $dev\n";
 
 ##
-##  Check if quotas present on this system
+##  Check if quotas present on this system (i.e. configured in kernel)
 ##
 
-Quota::sync() && do {print Quota::strerr; exit(1) };
+Quota::sync() && ($! != 1) && die "Quota::sync: ".Quota::strerr."\n";
 
 ##
 ##  call with one argument (uid defaults to getuid()
@@ -21,10 +20,10 @@ Quota::sync() && do {print Quota::strerr; exit(1) };
 
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev);
 if(defined($bc)) {
-  print "Your quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
+  print "Your quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
-  warn Quota::strerr,"\n";
+  warn Quota::strerr,"\n\n";
 }
 
 ##
@@ -42,49 +41,65 @@ else {
 
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev, $uid);
 if(defined($bc)) {
-  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
+  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
-  warn Quota::strerr,"\n";
+  warn Quota::strerr,"\n\n";
+}
+
+##
+##  get quotas via RPC
+##
+
+if($dev =~ m#^/#) {
+  print "Query localhost via RPC.\n";
+
+  ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path);
+  if(defined($bc)) {
+    print "Your Quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  }
+  else {
+    warn Quota::strerr,"\n\n";
+  }
+  print "Query localhost via RPC for $uid.\n";
+
+  ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path, $uid);
+  if(defined($bc)) {
+    print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  }
+  else {
+    warn Quota::strerr,"\n\n";
+  }
+
+}
+else {
+  print "Skipping RPC query - already done above.\n\n";
 }
 
 ##
 ##  set quota block & file limits for user
 ##
 
-print "New quota limits bs,bh,fs,fh for $uid (empty to skip): ";
-chop($in = <STDIN>);
-if($in =~ /\S/) {
-  unless(Quota::setqlim($dev, $uid, split(/\s*,\s*/, $in), 1)) {
-    print "Quota set for $uid\n";
+print "Enter path to set quota (empty to skip): ";
+chop($path = <STDIN>);
+
+if($path =~ /\S/) {
+  print "New quota limits bs,bh,fs,fh for $uid (empty to abort): ";
+  chop($in = <STDIN>);
+  if($in =~ /\S/) {
+    $dev = Quota::getqcarg($path) || die "$path: $!\n";
+    unless(Quota::setqlim($dev, $uid, split(/\s*,\s*/, $in), 1)) {
+      print "Quota set for $uid\n";
+    }
+    else {
+      warn Quota::strerr,"\n";
+    }
   }
-  else {
-    warn Quota::strerr,"\n";
-  }
 }
 
 ##
-##  get quotas from localhost per RPC
+##  Force immediate update on disk
 ##
 
-($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery("localhost", $path, $uid);
-if(defined($bc)) {
-  print "RPCquery says: ";
-  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
-}
-else {
-  warn Quota::strerr,"\n";
-}
-
-##
-##
-##
-
-unless(Quota::sync()) {
-  print "Quota sync'ed\n";
-}
-else {
-  print Quota::strerr,"\n";
-}
-
+Quota::sync() && ($! != 1) && die "Quota::sync: ".Quota::strerr."\n";
 

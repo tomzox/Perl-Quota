@@ -1,4 +1,4 @@
-#!/local/bin/perl5
+#!../../perl
 #
 # You should define two perl variables:
 #
@@ -10,11 +10,12 @@
 # You can choose include and libraries here
 # Shouldn't be neccessary on most systems
 
-# SunOS, Solaris 2.4, IRIX 5.3
+# SunOS, IRIX 5.3
 $inc  = "";
 $libs = "-lrpcsvc";
 
 # HP-UX 9.01 has no shared RPC library, so we include our own
+# Solaris 2.4 lacks some standard xdr routines
 # $inc  = "";
 # $libs = "";
 

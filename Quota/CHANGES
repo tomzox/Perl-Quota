@@ -1,0 +1,11 @@
+
+Changes in 0.2a:
+- need generic getqcarg instead of getdev, because:
+- added support for Solaris, OSF/1 (which work without access to block device)
+  Required extensive changes to the code.
+- getqcarg recognizes if path points into a NFS file system
+- query() may take NFS path as argument (in form host:/path)
+
+Thanks to David Lee <T.D.Lee@durham.ac.uk> for alpha-testing and suggesting
+the last two additions.
+

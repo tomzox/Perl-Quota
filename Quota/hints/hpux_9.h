@@ -20,8 +20,22 @@
 #define Q_MUL
 #define CADR (caddr_t)
 
+#define MNTENT mntent
+
 /*  My HP-UX has no shared librpcsvc. So I need to include the
  *  xdr routines supplied with this module
  */
 #define MY_XDR
+
+#define GQR_STATUS gqr_status
+#define GQR_RQUOTA gqr_rquota
+
+#define QS_BHARD dqb_bhardlimit
+#define QS_BSOFT dqb_bsoftlimit
+#define QS_BCUR  dqb_curblocks
+#define QS_FHARD dqb_fhardlimit
+#define QS_FSOFT dqb_fsoftlimit
+#define QS_FCUR  dqb_curfiles
+#define QS_BTIME dqb_btimelimit
+#define QS_FTIME dqb_ftimelimit
 

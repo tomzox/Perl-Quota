@@ -4,7 +4,18 @@
 
 #include "config.h"
 
-FILE *mtab;
+#if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
+#define BCOPY my_bcopy
+#else
+#define BCOPY bcopy
+#endif
+
+#ifndef NO_MNTENT
+FILE *mtab = NULL;
+#else
+struct statfs *mntp, *mtab = NULL;
+int mtab_size = 0;
+#endif
 
 /*
  * fetch quotas from remote host
@@ -26,31 +37,31 @@ getnfsquota(hostp, fsnamep, uid, dqp)
       xdr_getquota_args, &gq_args, xdr_getquota_rslt, &gq_rslt) != 0) {
     return (-1);
   }
-  switch (gq_rslt.gqr_status) {
+  switch (gq_rslt.GQR_STATUS) {
   case Q_OK:
     {
       struct timeval tv;
 
       gettimeofday(&tv, NULL);
-      dqp->dqb_bhardlimit =
-	  gq_rslt.gqr_rquota.rq_bhardlimit *
-	  gq_rslt.gqr_rquota.rq_bsize / DEV_BSIZE;
-      dqp->dqb_bsoftlimit =
-	  gq_rslt.gqr_rquota.rq_bsoftlimit *
-	  gq_rslt.gqr_rquota.rq_bsize / DEV_BSIZE;
-      dqp->dqb_curblocks =
-	  gq_rslt.gqr_rquota.rq_curblocks *
-	  gq_rslt.gqr_rquota.rq_bsize / DEV_BSIZE;
-      dqp->dqb_fhardlimit = gq_rslt.gqr_rquota.rq_fhardlimit;
-      dqp->dqb_fsoftlimit = gq_rslt.gqr_rquota.rq_fsoftlimit;
-      dqp->dqb_curfiles = gq_rslt.gqr_rquota.rq_curfiles;
-      dqp->dqb_btimelimit =
-	  tv.tv_sec + gq_rslt.gqr_rquota.rq_btimeleft;
-      dqp->dqb_ftimelimit =
-	  tv.tv_sec + gq_rslt.gqr_rquota.rq_ftimeleft;
+      dqp->QS_BHARD =
+	  gq_rslt.GQR_RQUOTA.rq_bhardlimit *
+	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_BSIZE;
+      dqp->QS_BSOFT =
+	  gq_rslt.GQR_RQUOTA.rq_bsoftlimit *
+	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_BSIZE;
+      dqp->QS_BCUR =
+	  gq_rslt.GQR_RQUOTA.rq_curblocks *
+	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_BSIZE;
+      dqp->QS_FHARD = gq_rslt.GQR_RQUOTA.rq_fhardlimit;
+      dqp->QS_FSOFT = gq_rslt.GQR_RQUOTA.rq_fsoftlimit;
+      dqp->QS_FCUR = gq_rslt.GQR_RQUOTA.rq_curfiles;
+      dqp->QS_BTIME =
+	  tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_btimeleft;
+      dqp->QS_FTIME =
+	  tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_ftimeleft;
 
-      if(dqp->dqb_bhardlimit==0 && dqp->dqb_bsoftlimit==0 &&
-         dqp->dqb_fhardlimit==0 && dqp->dqb_fsoftlimit==0) {
+      if(dqp->QS_BHARD==0 && dqp->QS_BSOFT==0 &&
+         dqp->QS_FHARD==0 && dqp->QS_FSOFT==0) {
         errno = ESRCH;
 	return(-1);
       }
@@ -90,14 +101,14 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
   if ((hp = gethostbyname(host)) == NULL) return ((int) RPC_UNKNOWNHOST);
   rep_time.tv_sec = 4;
   rep_time.tv_usec = 0;
-  bcopy(hp->h_addr, &remaddr.sin_addr, hp->h_length);
+  BCOPY((char *)hp->h_addr, (char *)&remaddr.sin_addr, hp->h_length);
   remaddr.sin_family = AF_INET;
   remaddr.sin_port = 0;
 
   /*
    *  Create client RPC handle
    */
-  if ((client = clntudp_create(&remaddr, prognum,
+  if ((client = (CLIENT *)clntudp_create(&remaddr, prognum,
       versnum, rep_time, &socket)) == NULL) {
 	  return ((int) rpc_createerr.cf_stat);
   }
@@ -127,7 +138,7 @@ xdr_getquota_args(xdrs, gqp)
 XDR *xdrs;
 struct getquota_args *gqp;
 {
-  return (xdr_path(xdrs, &gqp->gqa_pathp) &&
+  return (xdr_string(xdrs, &gqp->gqa_pathp, 1024) &&
           xdr_int(xdrs, &gqp->gqa_uid));
 }
 
@@ -137,7 +148,7 @@ XDR *xdrs;
 struct getquota_rslt *gqp;
 {
   return (xdr_union(xdrs,
-    (int *) &gqp->gqr_status, (char *) &gqp->gqr_rquota,
+    (int *) &gqp->GQR_STATUS, (char *) &gqp->GQR_RQUOTA,
     gq_des, (xdrproc_t) xdr_void));
 }
 
@@ -148,14 +159,14 @@ struct rquota *rqp;
 {
   return (xdr_int(xdrs, &rqp->rq_bsize) &&
       xdr_bool(xdrs, &rqp->rq_active) &&
-      xdr_u_long(xdrs, &rqp->rq_bhardlimit) &&
-      xdr_u_long(xdrs, &rqp->rq_bsoftlimit) &&
-      xdr_u_long(xdrs, &rqp->rq_curblocks) &&
-      xdr_u_long(xdrs, &rqp->rq_fhardlimit) &&
-      xdr_u_long(xdrs, &rqp->rq_fsoftlimit) &&
-      xdr_u_long(xdrs, &rqp->rq_curfiles) &&
-      xdr_u_long(xdrs, &rqp->rq_btimeleft) &&
-      xdr_u_long(xdrs, &rqp->rq_ftimeleft) );
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_bhardlimit) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_bsoftlimit) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_curblocks) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_fhardlimit) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_fsoftlimit) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_curfiles) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_btimeleft) &&
+      xdr_u_long(xdrs, (unsigned long *)&rqp->rq_ftimeleft) );
 }
 #endif
 #endif
@@ -175,18 +186,52 @@ query(dev,uid=getuid())
 	PPCODE:
 	{
 	  struct dqblk dqblk;
-	  if(!quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk)) {
-	    EXTEND(sp, 8);
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_curblocks  Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_bsoftlimit Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_bhardlimit Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_btimelimit)));
+	  char *p = NULL;
+	  int err;
+#ifdef USE_IOCTL
+	  struct quotactl qp;
+	  int fd = -1;
+#endif
 
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_curfiles)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_fsoftlimit)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_fhardlimit)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_ftimelimit)));
+	  if((*dev != '/') && (p = strchr(dev, ':'))) {
+#ifndef NO_RPC
+	    *p = '\0';
+	    err = getnfsquota(dev, p+1, uid, &dqblk);
+	    *p = ':';
+#else
+            errno = ENOSYS;
+#endif
 	  }
+	  else {
+#ifdef USE_IOCTL
+	    qp.op = Q_GETQUOTA;
+	    qp.uid = uid;
+	    qp.addr = (char *)&dqblk;
+	    err = (((fd = open(dev, O_RDONLY)) == -1) ||
+	           (ioctl(fd, Q_QUOTACTL, &qp) == -1));
+#else
+#ifndef __osf__
+	    err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
+#else
+	    err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
+#endif
+#endif
+          }
+	  if(!err) {
+	    EXTEND(sp, 8);
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
+
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
+	  }
+#ifdef USE_IOCTL
+	  if(fd != -1) close(fd);
+#endif
 	}
 
 int
@@ -201,15 +246,35 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 	CODE:
 	{
 	  struct dqblk dqblk;
-	  if(timelimflag != 0) timelimflag = 1;
+#ifdef USE_IOCTL
+	  struct quotactl qp;
+	  int fd;
 
-	  dqblk.dqb_bsoftlimit = bs Q_MUL;
-	  dqblk.dqb_bhardlimit = bh Q_MUL;
-	  dqblk.dqb_btimelimit = timelimflag;
-	  dqblk.dqb_fsoftlimit = fs;
-	  dqblk.dqb_fhardlimit = fh;
-	  dqblk.dqb_ftimelimit = timelimflag;
+	  qp.op = Q_SETQLIM;
+	  qp.uid = uid;
+	  qp.addr = (char *)&dqblk;
+#endif
+	  if(timelimflag != 0) timelimflag = 1;
+	  dqblk.QS_BSOFT = bs Q_MUL;
+	  dqblk.QS_BHARD = bh Q_MUL;
+	  dqblk.QS_BTIME = timelimflag;
+	  dqblk.QS_FSOFT = fs;
+	  dqblk.QS_FHARD = fh;
+	  dqblk.QS_FTIME = timelimflag;
+#ifdef USE_IOCTL
+	  if((fd = open(dev, O_RDONLY)) != -1) {
+	    RETVAL = (ioctl(fd, Q_QUOTACTL, &qp) != 0);
+	    close(fd);
+	  }
+	  else
+	    RETVAL = -1;
+#else
+#ifndef __osf__
 	  RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
+#else
+	  RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
+#endif
+#endif
 	}
 	OUTPUT:
 	RETVAL
@@ -218,7 +283,32 @@ int
 sync(dev=NULL)
 	char *	dev
 	CODE:
-	RETVAL = quotactl (Q_SYNC, dev, 0, NULL);
+#ifdef USE_IOCTL
+	{
+	  struct quotactl qp;
+	  int fd;
+
+	  if(dev == NULL) {
+	    qp.op = Q_ALLSYNC;
+	    dev = "/";   /* is probably ignored anyways */
+	  }
+	  else
+	    qp.op = Q_SYNC;
+	  if((fd = open(dev, O_RDONLY)) != -1) {
+	    RETVAL = (ioctl(fd, Q_QUOTACTL, &qp) != 0);
+	    close(fd);
+	  }
+	  else
+	    RETVAL = -1;
+	}
+#else
+#ifndef __osf__
+	RETVAL = quotactl(Q_SYNC, dev, 0, NULL);
+#else
+	if(dev == NULL) dev = "/";
+	RETVAL = quotactl(dev, QCMD(Q_SYNC, USRQUOTA), 0, NULL);
+#endif
+#endif
 	OUTPUT:
 	RETVAL
 
@@ -233,15 +323,15 @@ rpcquery(host,path,uid=getuid())
 	  struct dqblk dqblk;
 	  if(getnfsquota(host, path, uid, &dqblk) == 0) {
 	    EXTEND(sp, 8);
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_curblocks  Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_bsoftlimit Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_bhardlimit Q_DIV)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_btimelimit)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
 
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_curfiles)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_fsoftlimit)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_fhardlimit)));
-	    PUSHs(sv_2mortal(newSVnv(dqblk.dqb_ftimelimit)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
+	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
 	  }
 #else
 	  errno = ENOSYS;
@@ -252,11 +342,25 @@ int
 setmntent()
 	CODE:
 	{
+#ifndef NO_MNTENT
+#ifndef NO_OPEN_MNTTAB
 	  if(mtab != NULL) endmntent(mtab);
 	  if((mtab = setmntent(MOUNTED, "r")) == NULL)
+#else
+	  if(mtab != NULL) fclose(mtab);
+	  if((mtab = fopen(MOUNTED,"r")) == NULL)
+#endif
 	    RETVAL = -1;
 	  else
 	    RETVAL = 0;
+#else
+	  /* if(mtab != NULL) free(mtab); */
+	  if((mtab_size = getmntinfo(&mtab, MNT_NOWAIT)) <= 0)
+	    RETVAL = -1;
+	  else
+	    RETVAL = 0;
+	  mntp = mtab;
+#endif
 	}
 	OUTPUT:
 	RETVAL
@@ -265,6 +369,8 @@ void
 getmntent()
 	PPCODE:
 	{
+#ifndef NO_MNTENT
+#ifndef NO_OPEN_MNTTAB
 	  struct mntent *mntp;
 	  if(mtab != NULL) {
 	    if(mntp = getmntent(mtab)) {
@@ -277,6 +383,31 @@ getmntent()
 	  }
 	  else
 	    errno = EBADF;
+#else
+	  struct mnttab mntp;
+	  if(mtab != NULL) {
+	    if(getmntent(mtab, &mntp) == 0)  {
+	      EXTEND(sp, 4);
+	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_special, strlen(mntp.mnt_special))));
+	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_mountp, strlen(mntp.mnt_mountp))));
+	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_fstype, strlen(mntp.mnt_fstype))));
+	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_mntopts, strlen(mntp.mnt_mntopts))));
+	    }
+	  }
+	  else
+	    errno = EBADF;
+#endif
+#else
+	  if((mtab != NULL) && mtab_size) {
+	    EXTEND(sp,4);
+	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntfromname, strlen(mntp->f_mntfromname))));
+	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntonname, strlen(mntp->f_mntonname))));
+	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
+	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_flags)));
+	    mtab_size--;
+	    mntp++;
+	  }
+#endif
 	}
 
 void
@@ -284,7 +415,31 @@ endmntent()
 	PPCODE:
 	{
 	  if(mtab != NULL) {
+#ifndef NO_MNTENT
+#ifndef NO_OPEN_MNTTAB
 	    endmntent(mtab);   /* returns always 1 in SunOS */
+#else
+	    fclose(mtab);
+#endif
+#else
+	    /* if(mtab != NULL) free(mtab); */
 	    mtab = NULL;
+#endif
 	  }
 	}
+
+char *
+getqcargtype()
+	CODE:
+#ifdef USE_IOCTL
+	RETVAL = "mntpt";
+#else
+#ifdef __osf__
+	RETVAL = "path";
+#else
+	RETVAL = "dev";
+#endif
+#endif
+	OUTPUT:
+	RETVAL
+

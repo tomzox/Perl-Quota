@@ -1,10 +1,10 @@
 
 /*
- *   Configuration for IRIX 5.3
+ *   Configuration for SunOS 4.1.3
  */
 
 #include <sys/param.h>
-#include <sys/quota.h>
+#include <ufs/quota.h>
 #include <mntent.h>
 
 #include <rpc/rpc.h>
@@ -13,14 +13,15 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
+#include <strings.h>
 #include <stdio.h>
 
-#define Q_DIV
-#define Q_MUL
-#define CADR (caddr_t)
+#define Q_DIV / 2
+#define Q_MUL * 2
+#define CADR
 
 #define MNTENT mntent
- 
+
 #define GQR_STATUS gqr_status
 #define GQR_RQUOTA gqr_rquota
 

@@ -1,4 +1,4 @@
-Sys::Quota/INSTALL V0.1a  Oct/95  tnzoerne
+Sys::Quota/INSTALL V0.2a  Oct/95  tnzoerne
 
 INSTALL
 =======
@@ -6,9 +6,9 @@ INSTALL
 1a) If there is a file below hints/ for your operating system, just create
     a link named "config.h" to that file:  ln -s hints/my-os.h config.h
 
-1b) Else, use hints/none.h to create a config.h of your own. This shouldn't
-    be too difficult, just check which includes you need in the online
-    manuals. Help is in none.h
+1b) Else, use hints/none.h to create a config.h of your own. Check which
+    includes you need in the online manuals. Contact me before you try this,
+    it might already be done.
 
 2)  Edit Makefile.PL to maybe add/delete some Includes or Libraries
     Normally you'll need only librpcsvc for the quota RPC mechanism.
@@ -25,6 +25,8 @@ INSTALL
 4b) Else, Configure.sh will probably offer to compile Quota automatically.
 
 5)  Run test/quotatest to check if the module routines do work correctly
+    You'll have to insert the correct path to your perl binary in the
+    first line of this script.
 
 
 Tom
