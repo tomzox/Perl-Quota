@@ -208,7 +208,7 @@ int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb )
   {
     struct dqblk_v3 dqb3;
 
-    ret = quotactl(QCMD(Q_V3_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, &dqb3);
+    ret = quotactl(QCMD(Q_V3_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb3);
     if (ret == 0)
     {
       dqb->dqb_bhardlimit = dqb3.dqb_bhardlimit;

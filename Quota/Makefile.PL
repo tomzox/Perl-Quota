@@ -49,7 +49,7 @@ if ( -d "/afs" ) {
 
 # check to see if we have a kernel module for the Veritas file system
 if ( $os =~ /^SunOS/ ) {
-   if ( -f '/kernel/fs/vxfs' ) {
+   if ( -f '/usr/include/sys/fs/vx_quota.h' ) {
      $hasvxfs = '-DSOLARIS_VXFS';
      $extraobj = "$extraobj vxquotactl.o";
      print "Configured with the VERITAS File System on Solaris\n";

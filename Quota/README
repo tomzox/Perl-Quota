@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.4.9
-Date:      August 2003
+Version:   1.4.11
+Date:      August 2004
 DSLI-code: Rdcf
            - stable release
            - support by developer

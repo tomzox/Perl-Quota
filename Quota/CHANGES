@@ -1,3 +1,8 @@
+Changes in 1.4.11 (Aug 2004)
+- Updated VxFS detection in Makefile.PL for recent Solaris/VxFS versions
+  Thanks to Joshua Frigerio for the info and to Keith Clay for verification.
+- tiny syntax cleanup in linuxapi.c
+
 Changes in 1.4.10 (Jan 2004)
 - Applied patch by Antti Tapaninen (aet at cc.hut.fi) to add support
   for MacOS X (based on BSD config) and NFS3 support for AIX.
