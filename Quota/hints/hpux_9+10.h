@@ -1,6 +1,6 @@
 
 /*
- *   Configuration for HP-UX 9.0.1
+ *   Configuration for HP-UX 9.0.x & HP-UX 10.10 & HP-UX 10.20
  */
 
 #include <sys/param.h>
@@ -22,8 +22,8 @@
 
 #define MNTENT mntent
 
-/*  My HP-UX has no shared librpcsvc. So I need to include the
- *  xdr routines supplied with this module
+/*  HP-UX has no shared librpcsvc. So we need to include the
+ *  XDR routines supplied with this module.
  */
 #define MY_XDR
 

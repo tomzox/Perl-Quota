@@ -1,16 +1,22 @@
 #!../../perl
 
+# You shouldn't need to change anything here.
+# All configuration is done in the hints/ directory.
+#-----------------------------------------------------------------------------#
+#
+# Automagically choose the right configuration
+#
 chop($os = `uname -rs 2>/dev/null`);
 if($os =~ /^SunOS 4\.1/) { $config='sunos_4_1.h'; }
 elsif($os =~ /^SunOS 5/) { $config='solaris_2.h'; }
 elsif($os =~ /^HP-UX (A\.09|B\.10)/) { $config='hpux_9+10.h'; }
-elsif($os =~ /^IRIX 5/)  { $config='irix_5.h'; }
+elsif($os =~ /^IRIX [56]/)  { $config='irix_5+6.h'; }
+elsif($os =~ /^OSF1 V3/) { $config='dec_osf_3.h'; }
+elsif($os =~ /^BSD\/OS 2/) { $config='bsdi_2.h'; }
 
 printf "Using hints/$config for config.h\n" if defined($config);
 
-###--------------------------------------------------------------------------#
-### You shouldn't need to change anything below
-###
+#-----------------------------------------------------------------------------#
 
 BEGIN { push(@INC, "../../lib"); }
 

@@ -8,8 +8,15 @@ README
 test/quotatest
 hints/dec_osf_3.h
 hints/hpux_9+10.h
-hints/irix_5.h
+hints/irix_5+6.h
 hints/linux.h
 hints/none.h
 hints/solaris_2.h
 hints/sunos_4_1.h
+hints/bsdi_2.h
+include/rquota.h
+contrib/README
+contrib/report-quota
+contrib/quotamgmt/Author
+contrib/quotamgmt/config
+contrib/quotamgmt/quotamgmt

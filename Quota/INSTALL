@@ -1,38 +1,44 @@
-Sys::Quota/INSTALL V0.3a  Nov/96  tnzoerne
+Quota/INSTALL V1.0  Aug/97  tnzoerne
 
 INSTALL
 =======
 
 1)  Generate the hints file.
 
- a) If there is a file below hints/ for your operating system, just create
+ a) Should be done by Makefile.PL for all supported systems. If not and
+    there is a file below hints/ for your operating system, just create
     a link named "config.h" to that file:  ln -s hints/my-os.h config.h
-    On some supported systems this is done automatically by Makefile.PL
-    so you may skip that step.
 
  b) Else, use hints/none.h to create a config.h of your own. Check which
     includes you need in the online manuals. Contact me before you try
     this, it might already be done.
 
-    Edit Makefile.PL to maybe add/delete some Includes or Libraries
-    Normally you'll need only librpcsvc for the quota RPC mechanism.
-    If you don't have this library or it lacks the quota routines,
-    define MY_XDR in config.h to include the routines provided with
-    this module. You might also need to run rpcgen on /usr/include/
-    sys/rpcsvc/rquota.x
-    If you don't need RPC at all, just define NO_RPC.
+    Edit Makefile.PL to maybe add/delete some libraries. Usually you'll
+    need only librpcsvc for the quota RPC mechanism. If you don't have
+    this library or it lacks the quota routines, #define MY_XDR in
+    config.h to include the routines provided with this module. If you
+    don't have /usr/include/rpcsvc/rquota.h, #include "include/rquota.h"
+    If you don't need RPC at all, just #define NO_RPC.
 
 3)  Generate the Makefile: perl Makefile.PL
 
 4a) If Perl is already compiled and installed:  "make install"
-    Will compile the module, create the dynamic loadable library
-    and copy all the stuff at the correct places of you perl tree.
+    will compile the module, create the dynamic loadable library
+    and copy all the stuff at the correct places in your perl tree.
 
-4b) Else, Configure.sh will probably offer to compile Quota automatically.
+    If you don't want to install immediately, type only "make"
+    and "make install" maybe later.
 
-5)  Run test/quotatest to check if the module routines do work correctly
-    You'll have to insert the correct path to your perl binary in the
-    first line of this script.
+4b) Else, Configure.sh will probably offer to install Quota automatically.
+
+5)  Run "perl test/quotatest" to check if the module routines do work
+    correctly. As of release 1.0 you can test the module without installing.
+    Remove "use blib" if you want to test the installed version.
+
+    contrib/ contains some additional examples. No guarantee from me that
+    they do anything useful or don't format your hard drive.
+
+6)  Before you start for another OS, type "make distclean"
 
 Tom
 ---

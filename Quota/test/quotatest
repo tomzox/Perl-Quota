@@ -1,12 +1,14 @@
-#!/local/bin/perl5
+#!../../../perl
+#!/local/perl-5.004/bin/perl
 
+use blib;
 use Quota;
 
 print "Enter path to get quota for (NFS possible; default '.'): ";
 chop($path = <STDIN>);
 $path = "." unless $path =~ /\S/;
 $dev = Quota::getqcarg($path) || die "$path: $!\n";
-print "Using device/argument $dev\n";
+print "Using device/argument \"$dev\"\n";
 
 ##
 ##  Check if quotas present on this filesystem
@@ -16,7 +18,8 @@ if($dev =~ m#^[^/]+:#) {
   print "Is a remote file system\n";
 }
 elsif(Quota::sync($dev) && ($! != 1)) {
-  die "Quota::sync: ".Quota::strerr."\n";
+  warn "Quota::sync: ".Quota::strerr."\n";
+  die "Choose another file system - quotas not functional on this one\n";
 }
 else {
   print "Quotas are present on this filesystem (sync ok)\n";
@@ -26,9 +29,15 @@ else {
 ##  call with one argument (uid defaults to getuid()
 ##
 
+print "\nQuery this fs with default uid (which is real uid) $>\n";
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev);
 if(defined($bc)) {
-  print "Your quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
+  $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+  ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
+  $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+
+  print "Your usage and limits are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
   warn "Quota::query: ",Quota::strerr,"\n\n";
@@ -49,7 +58,12 @@ else {
 
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev, $uid);
 if(defined($bc)) {
-  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
+  $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+  ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
+  $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+
+  print "Usage and limits for $uid are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
   warn Quota::strerr,"\n\n";
@@ -64,7 +78,12 @@ if($dev =~ m#^/#) {
 
   ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path);
   if(defined($bc)) {
-    print "Your Quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+    my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
+    $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+    ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
+    $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+
+    print "Your Usage and limits are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
   }
   else {
     warn Quota::strerr,"\n\n";
@@ -73,7 +92,12 @@ if($dev =~ m#^/#) {
 
   ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path, $uid);
   if(defined($bc)) {
-    print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+    my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
+    $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+    ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
+    $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+
+    print "Usage and limits for $uid are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
   }
   else {
     warn Quota::strerr,"\n\n";
@@ -81,7 +105,7 @@ if($dev =~ m#^/#) {
 
 }
 else {
-  print "Skipping RPC query - already done above.\n\n";
+  print "Skipping RPC query test - already done above.\n\n";
 }
 
 ##

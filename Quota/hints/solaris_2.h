@@ -1,8 +1,8 @@
 
 /*
- *   Configuration for Solaris 2.4
+ *   Configuration for Solaris 2.4 & 2.5.x
  *
- *   this is for use with SYSV flavour, no /usr/bsd*
+ *   (this is for use with SYSV flavour, not /usr/bsd)
  */
 
 #include <sys/param.h>

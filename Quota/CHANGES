@@ -1,3 +1,16 @@
+Changes in 1.0:
+- improved documentation, now provided in pod format inside Quota.pm
+- finally fixed errno.h problem in Quota.pm
+  Thanks to Tobias Oetiker (oetiker@ee.ethz.ch)
+- added BSDI port by Jim Hribnak (hribnak@nucleus.com)
+  unfortunately without RPC support.
+- small fixes for OSF/1
+- more hints in hints/none.h
+- I've again received requests for Linux ports. However since I don't
+  have access to an installation with quota support, I can't do this
+  myself. I've included a config file that compiles without warnings
+  on our system ("Red Hat for Sparc" or something), but I can't run it.
+  If anyone gets it to work with or without RPC, please contact me.
 
 Changes in 0.3a:
 - started port for Linux 2.0; still needs some work.

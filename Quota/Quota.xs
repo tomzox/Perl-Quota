@@ -183,9 +183,8 @@ struct rquota *rqp;
  *
  */
 
-/* PROTOTYPES: DISABLE */
-
 MODULE = Quota  PACKAGE = Quota
+PROTOTYPES: DISABLE
 
 void
 query(dev,uid=getuid())
@@ -218,7 +217,7 @@ query(dev,uid=getuid())
 	    err = (((fd = open(dev, O_RDONLY)) == -1) ||
 	           (ioctl(fd, Q_QUOTACTL, &qp) == -1));
 #else
-#ifndef __osf__
+#ifndef Q_CTL_V2
 	    err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
 #else
 	    err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
@@ -277,7 +276,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 	  else
 	    RETVAL = -1;
 #else
-#ifndef __osf__
+#ifndef Q_CTL_V2
 	  RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
 #else
 	  RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
@@ -304,13 +303,14 @@ sync(dev=NULL)
 	    qp.op = Q_SYNC;
 	  if((fd = open(dev, O_RDONLY)) != -1) {
 	    RETVAL = (ioctl(fd, Q_QUOTACTL, &qp) != 0);
+	    if(errno == ESRCH) errno = EINVAL;
 	    close(fd);
 	  }
 	  else
 	    RETVAL = -1;
 	}
 #else
-#ifndef __osf__
+#ifndef Q_CTL_V2
 	RETVAL = quotactl(Q_SYNC, dev, 0, NULL);
 #else
 	if(dev == NULL) dev = "/";
@@ -442,7 +442,7 @@ getqcargtype()
 #ifdef USE_IOCTL
 	RETVAL = "mntpt";
 #else
-#ifdef __osf__
+#ifdef Q_CTL_V2
 	RETVAL = "path";
 #else
 	RETVAL = "dev";

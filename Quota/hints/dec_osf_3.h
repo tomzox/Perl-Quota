@@ -1,6 +1,6 @@
 
 /*
- *   Configuration for DEC OSF/1 V3.2  (untested)
+ *   Configuration for DEC OSF/1 V3.2
  */
 
 #include <sys/types.h>
@@ -20,6 +20,7 @@
 
 #define Q_DIV
 #define Q_MUL
+#define Q_CTL_V2
 #define CADR
 
 #define NO_MNTENT

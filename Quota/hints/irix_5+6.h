@@ -1,6 +1,6 @@
 
 /*
- *   Configuration for IRIX 5.3
+ *   Configuration for IRIX 5.3 and 6.2 (since perl v5.004)
  */
 
 #include <sys/param.h>
