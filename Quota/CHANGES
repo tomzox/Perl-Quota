@@ -1,4 +1,15 @@
+Changes in 1.1:  (August 1998)
+- added support for Linux (thanks to Steve Nolan at bookmark.com for
+  providing a development account)
+- added OpenBSD 2.2 support, provided by James Shelburne (reilly@eramp.net)
+- added syntax fixes (2 additional #includes) for IRIX 6.4
+  provided by Subhendu Ghosh (sghosh@menger.eecs.stevens-tech.edu)
+- support for IRIX xfs filesystems (additional to the older efs fs)
+  provided by David Lloyd (cclloyd@monotreme.cc.missouri.edu)
+
+
 Changes in 1.0:
+(That's the version that's been released with O'Reillys Perl Resource Books)
 - improved documentation, now provided in pod format inside Quota.pm
 - finally fixed errno.h problem in Quota.pm
   Thanks to Tobias Oetiker (oetiker@ee.ethz.ch)

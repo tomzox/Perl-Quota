@@ -1,31 +1,44 @@
-
 /*
- *   Configuration for DEC OSF/1 V3.2
+ *   Configuration example for OpenBSD 2.2
+ *
+ *   Is identical to the BSDI config, except for rquota.h
+ *   Provided by James Shelburne (reilly@eramp.net)
  */
 
-#include <sys/types.h>
+/*
+ *   RPC yet unsupported.
+ *   If you want RPC, #undef NO_RPC below.
+ *   If you get it to work, please mail me    -tom
+ */
+
 #include <sys/param.h>
-#include <ufs/quota.h>
 #include <sys/mount.h>
-#include <malloc.h>
-#include <alloca.h>
+#include <fstab.h>
+#include <ufs/ufs/quota.h>
 
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
+#include <rpc/svc.h>
 #include <rpcsvc/rquota.h>
+
 #include <sys/socket.h>
 #include <netdb.h>
 
 #include <stdio.h>
 
-#define Q_DIV
-#define Q_MUL
+#define Q_DIV / 2
+#define Q_MUL * 2
 #define DEV_QBSIZE DEV_BSIZE
 #define Q_CTL_V2
-#define CADR
+#define Q_SETQLIM Q_SETQUOTA
+#define CADR (caddr_t)
+
+#define NO_RPC
+
+#define MY_XDR
 
 #define NO_MNTENT
-
+ 
 #define GQR_STATUS gqr_status
 #define GQR_RQUOTA gqr_rquota
 

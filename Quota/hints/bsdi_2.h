@@ -29,6 +29,7 @@
 
 #define Q_DIV / 2
 #define Q_MUL * 2
+#define DEV_QBSIZE DEV_BSIZE
 #define Q_CTL_V2
 #define Q_SETQLIM Q_SETQUOTA
 #define CADR (caddr_t)

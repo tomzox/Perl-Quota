@@ -20,6 +20,7 @@
 #define USE_IOCTL
 #define Q_DIV / 2
 #define Q_MUL * 2
+#define DEV_QBSIZE DEV_BSIZE
 #define CADR (caddr_t)
 
 /* Haven't found definition of quotactl-struc in any include,

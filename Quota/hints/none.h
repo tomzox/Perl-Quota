@@ -34,6 +34,19 @@
 #define Q_DIV / 2
 #define Q_MUL * 2
 
+/* Normally quota should be reported in file system block sizes.
+ * On Linux though all values are converted to 1k blocks. So we
+ * must not use DEV_BSIZE (usually 512) but 1024 instead. On all
+ * other systems use the file system block size. This value is
+ * used only with RPC, else only Q_DIV and Q_MUL are relevant. */
+#define DEV_QBSIZE DEV_BSIZE
+
+/* Turn off attempt to convert remote quota block reports to 1k sizes.
+ * This assumes that the remote system always reports in 1k blocks.
+ * Only needed when the remote system also reports a bogus block
+ * size value in the rquota structure (like Linux does).  */
+/* #define LINUX_RQUOTAD_BUG /**/
+
 /* Some systems need to cast the dqblk structure
    Do change only if your compiler complains */
 #define CADR (caddr_t)

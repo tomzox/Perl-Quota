@@ -17,7 +17,7 @@ print "Using device/argument \"$dev\"\n";
 if($dev =~ m#^[^/]+:#) {
   print "Is a remote file system\n";
 }
-elsif(Quota::sync($dev) && ($! != 1)) {
+elsif(Quota::sync($dev) && ($! != 1)) {  # ignore EPERM
   warn "Quota::sync: ".Quota::strerr."\n";
   die "Choose another file system - quotas not functional on this one\n";
 }

@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.0';
+$VERSION = '1.1';
 
 bootstrap Quota;
 
@@ -45,15 +45,19 @@ sub getqcarg {
   my($dev) = (stat(($_[0] || ".")))[0];
   my($ret) = undef;
   my($argtyp) = getqcargtype();
-  my($fsname,$path);
+  my($fsname,$path,$fstyp);
 
   if($dev && !Quota::setmntent()) {
-    while(($fsname,$path) = Quota::getmntent()) {
+    while(($fsname,$path,$fstyp) = Quota::getmntent()) {
       if($dev == (stat($path))[0]) {
 	if($fsname !~ m#^/#) { $ret = $fsname }
 	elsif($argtyp eq "dev")  { $ret = $fsname }
 	elsif($argtyp eq "path") { $ret = "$path/quotas" }
-	else { $ret = $path }
+	elsif($argtyp eq "dev(XFS)") {
+	  if($fstyp eq "xfs") { $ret = "(XFS)$fsname"; }
+	  else { $ret = "$fsname"; }
+	}
+	else { $ret = $path }  #($argtyp eq "mntpt")
         last;
       }
     }
@@ -269,6 +273,17 @@ An example for each function can be found in the test script
 I<test/quotatest>. See also the contrib directory, which contains
 some longer scripts, kindly donated by users of the module.
 
+=head1 BUGS
+
+With remote quotas we have to rely on the remote system to state
+correctly which block size the quota values are referring to.
+Unfortunately on Linux the rpc.rquotad reports a block size of
+4 kilobytes, which is wildly incorrect. So you either need to fix
+your Linux rquotad or keep B<#define LINUX_RQUOTAD_BUG> defined,
+which will Quota::query always let assume all remote partners
+in reality report 1kB blocks. Of course that'll break with mixed
+systems, so better fix your rquotad.
+
 =head1 AUTHOR
 
 This module was written 1995 by Tom Zoerner
@@ -276,8 +291,14 @@ This module was written 1995 by Tom Zoerner
 
 Additional testing and porting by
 David Lee (T.D.Lee@durham.ac.uk),
-Tobias Oetiker (oetiker@ee.ethz.ch) and
-Jim Hribnak (hribnak@nucleus.com)
+Tobias Oetiker (oetiker@ee.ethz.ch),
+Jim Hribnak (hribnak@nucleus.com),
+David Lloyd (cclloyd@monotreme.cc.missouri.edu),
+James Shelburne (reilly@eramp.net) and
+Subhendu Ghosh (sghosh@menger.eecs.stevens-tech.edu).
+Special thanks go to Steve Nolan at bookmark.com for providing
+me with an account and hence finally allowing me to finish the
+Linux port.
 
 =head1 SEE ALSO
 

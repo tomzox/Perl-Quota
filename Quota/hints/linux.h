@@ -1,13 +1,6 @@
 
 /*
- *   Configuration for Linux 2.0.22
- */
-
-/*
- *   This should compile without problems. However I can't test it
- *   since I don't have access to a Linux system with quota support.
- *   If it doesn't work, uncomment #define NO_RPC below.
- *   Mail me any results   -tom
+ *   Configuration for Linux 2.0.22 and later
  */
 
 #include <sys/param.h>
@@ -26,11 +19,13 @@
 #include <strings.h>
 #include <stdio.h>
 
-#define Q_DIV / 2
-#define Q_MUL * 2
+#define Q_DIV
+#define Q_MUL
+#define DEV_QBSIZE 1024
+
+#define Q_CTL_V3
 #define CADR (caddr_t)
 
-/* #define NO_RPC /**/
 #define MY_XDR
 
 #define MNTENT mntent
@@ -47,3 +42,4 @@
 #define QS_BTIME dqb_btime
 #define QS_FTIME dqb_itime
 
+#define LINUX_RQUOTAD_BUG

@@ -1,9 +1,9 @@
-
 /*
- *   Configuration for IRIX 5.3 and 6.2 (since perl v5.004)
+ *   Configuration for IRIX 5.3
  */
 
 #include <sys/param.h>
+#include <sys/types.h>
 #include <sys/quota.h>
 #include <mntent.h>
 
@@ -17,10 +17,11 @@
 
 #define Q_DIV
 #define Q_MUL
+#define DEV_QBSIZE DEV_BSIZE
 #define CADR (caddr_t)
 
 #define MNTENT mntent
- 
+
 #define GQR_STATUS gqr_status
 #define GQR_RQUOTA gqr_rquota
 

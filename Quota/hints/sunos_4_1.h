@@ -18,6 +18,7 @@
 
 #define Q_DIV / 2
 #define Q_MUL * 2
+#define DEV_QBSIZE DEV_BSIZE
 #define CADR
 
 #define MNTENT mntent

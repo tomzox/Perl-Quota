@@ -1,17 +1,32 @@
-Quota/INSTALL V1.0  Aug/97  tnzoerne
+Quota/INSTALL V1.1  Aug/98  TOMZO
 
 INSTALL
 =======
 
-1)  Generate the hints file.
+Usually all you should have to do is:
+
+	perl Makefile.PL
+	make
+	make test
+	make install
+	make clean
+
+If that fails, regard the following instructions step by step:
+
+1)  On Linux systems make sure you have compiled your kernel with quota
+    support. You also need the quota utilities and headers installed from
+    ftp://ftp.etter.ch/pub/linux/kernel/subsystems/quota/all.tar.gz
+    (also available at other Linux mirrors). See also 2b below.
+
+2)  Generate the hints file.
 
  a) Should be done by Makefile.PL for all supported systems. If not and
     there is a file below hints/ for your operating system, just create
     a link named "config.h" to that file:  ln -s hints/my-os.h config.h
 
  b) Else, use hints/none.h to create a config.h of your own. Check which
-    includes you need in the online manuals. Contact me before you try
-    this, it might already be done.
+    #includes you need in the online manuals. Contact me before you invest
+    a lot of time, it might already be done.
 
     Edit Makefile.PL to maybe add/delete some libraries. Usually you'll
     need only librpcsvc for the quota RPC mechanism. If you don't have
@@ -19,6 +34,11 @@ INSTALL
     config.h to include the routines provided with this module. If you
     don't have /usr/include/rpcsvc/rquota.h, #include "include/rquota.h"
     If you don't need RPC at all, just #define NO_RPC.
+
+    On Linux you should keep #define LINUX_RQUOTAD_BUG as long as you
+    don't have a correctly working rpc.rquotad. To achive that, simply
+    replace line 58 in rquota_server.c "*blksize = st.st_blksize;" with
+    "*blksize = 1024;"
 
 3)  Generate the Makefile: perl Makefile.PL
 
@@ -31,12 +51,13 @@ INSTALL
 
 4b) Else, Configure.sh will probably offer to install Quota automatically.
 
-5)  Run "perl test/quotatest" to check if the module routines do work
-    correctly. As of release 1.0 you can test the module without installing.
-    Remove "use blib" if you want to test the installed version.
+5)  Run "make test" to check if the module routines do work correctly.
+    (Since release 1.0 you can test the module without installing.
+    Remove "use blib" if you want to test the installed version.)
 
-    contrib/ contains some additional examples. No guarantee from me that
-    they do anything useful or don't format your hard drive.
+    contrib/ contains some additional examples, donated by users.
+    No guarantee from me that they do anything useful or don't format
+    your hard drive.
 
 6)  Before you start for another OS, type "make distclean"
 
