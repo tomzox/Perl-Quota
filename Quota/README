@@ -1,0 +1,58 @@
+Sys::Quota/README V0.1a  Oct/95  tnzoerne
+
+Quota extension module for Perl
+-------------------------------
+
+Author:   Tom Zoerner
+          CSD, University of Erlangen-Nuernberg
+          tom.zoerner@informatik.uni-erlangen.de
+
+Version:  0.1a  (alpha)
+Date:     Oct 11 1995
+
+This module provides access to and utilities for filesystem quotas.
+In detail, the quotactl(2) syscall is used to query or set quotas on
+the local host, or RPC to send a query to a remote host. A getdev
+function is provided which uses getmntent to translate paths to the
+block device of the according file system.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+Usage:
+
+($block_curr, $block_soft, $block_hard, $block_timelimit,
+ $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
+query(dev[,uid])
+	get current quota and limits for given filesystem and user.
+
+setqlim(dev,uid,bs,bh,fs,fh[,tlo])
+	set quota limits for given user (block soft/hard, inode soft/hard)
+	tlo decides if timelimit is set to "NOT STARTED" (0,default) or
+	"7.0 days" (1)
+	(more alternatives aren't available in most implementations)
+
+sync()
+	have the kernel update the quota file on disk
+
+($block_curr, $block_soft, $block_hard, $block_timelimit,
+ $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
+rpcquery(host,path[,uid])
+	query quotas on a remote host via RPC call.
+
+$dev =
+getdev([$path])
+	Get the block device for filesystem of given path or "."
+
+setmntent()
+	Open mtab file. If already open, automatically closed before.
+	NOTE: doesn't exist in Solaris. See endmntent
+
+($dev, $path, $type, $opts) =
+getmntent()
+	returns next entry in mtab or undef.
+
+endmntent()
+	close mtab file, if open. Always returns undef.
+	NOTE: the according library funtion does not exist in Solaris.
+	This routine is simulated by reading with getmntent until EOF.
+
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-

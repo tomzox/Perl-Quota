@@ -1,0 +1,90 @@
+#!/local/bin/perl5
+
+use Quota;
+require "errno.ph";
+
+print "Enter filesystem to get quota for (default /home.stand): ";
+chop($path = <STDIN>);
+$path = "/home.stand" unless $path =~ /\S/;
+$dev = Quota::getdev($path) || die "$path: $!\n";
+print "Using device $dev\n";
+
+##
+##  Check if quotas present on this system
+##
+
+Quota::sync() && do {print Quota::strerr; exit(1) };
+
+##
+##  call with one argument (uid defaults to getuid()
+##
+
+($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev);
+if(defined($bc)) {
+  print "Your quota is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
+}
+else {
+  warn Quota::strerr,"\n";
+}
+
+##
+##  call with two arguments
+##
+
+{
+  print "Enter a uid to get quota for: ";
+  chop($uid = <STDIN>);
+  unless($uid =~ /^\d{1,5}$/) {
+    print "You have to enter a numerical uid in range 0..65535 here.\n";
+    redo;
+  }
+}
+
+($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev, $uid);
+if(defined($bc)) {
+  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
+}
+else {
+  warn Quota::strerr,"\n";
+}
+
+##
+##  set quota block & file limits for user
+##
+
+print "New quota limits bs,bh,fs,fh for $uid (empty to skip): ";
+chop($in = <STDIN>);
+if($in =~ /\S/) {
+  unless(Quota::setqlim($dev, $uid, split(/\s*,\s*/, $in), 1)) {
+    print "Quota set for $uid\n";
+  }
+  else {
+    warn Quota::strerr,"\n";
+  }
+}
+
+##
+##  get quotas from localhost per RPC
+##
+
+($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery("localhost", $path, $uid);
+if(defined($bc)) {
+  print "RPCquery says: ";
+  print "Quota for $uid is $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n";
+}
+else {
+  warn Quota::strerr,"\n";
+}
+
+##
+##
+##
+
+unless(Quota::sync()) {
+  print "Quota sync'ed\n";
+}
+else {
+  print Quota::strerr,"\n";
+}
+
+

@@ -1,0 +1,32 @@
+Sys::Quota/INSTALL V0.1a  Oct/95  tnzoerne
+
+INSTALL
+=======
+
+1a) If there is a file below hints/ for your operating system, just create
+    a link named "config.h" to that file:  ln -s hints/my-os.h config.h
+
+1b) Else, use hints/none.h to create a config.h of your own. This shouldn't
+    be too difficult, just check which includes you need in the online
+    manuals. Help is in none.h
+
+2)  Edit Makefile.PL to maybe add/delete some Includes or Libraries
+    Normally you'll need only librpcsvc for the quota RPC mechanism.
+    If you don't have this library of it isn't shared, define MY_XDR
+    in config.h to include the routines provided with this module.
+    If you don't need RPC anyways, just define NO_RPC.
+
+3)  Generate the Makefile: ./Makefile.PL
+
+4a) If Perl is already compiled and installed: make; make install
+    Will compile the module, create the dynamic loadable library
+    and copy all the stuff at the correct places of you perl tree.
+
+4b) Else, Configure.sh will probably offer to compile Quota automatically.
+
+5)  Run test/quotatest to check if the module routines do work correctly
+
+
+Tom
+---
+tom.zoerner@informatik.uni-erlangen.de
