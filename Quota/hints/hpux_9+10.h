@@ -1,5 +1,7 @@
 /*
  *   Configuration for HP-UX 9.0.x & HP-UX 10.10 & HP-UX 10.20
+ *
+ *   For AFS support look at the end of this file
  */
 
 /*   See hints/none.h for a complete list of options with explanations */
@@ -41,3 +43,14 @@
 #define QS_BTIME dqb_btimelimit
 #define QS_FTIME dqb_ftimelimit
 
+
+/* Uncomment the following define and MAKE lines to enable AFS support */
+
+/* #define AFSQUOTA */
+
+/* MakeMaker parameters - do not remove!
+#MAKE AFSHOME=/products/security/athena
+#MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb
+#MAKE INC=-I$(AFSHOME)/include
+#MAKE OBJ=afsquota.o
+*/

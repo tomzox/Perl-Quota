@@ -1,7 +1,8 @@
 /*
  *   Configuration for 6.2 - 6.4
- *   (the only difference to IRIX 5 is XFS support)
- *   Warning: XFS support is still untested as of version 1.1.2!
+ *   (the only difference to IRIX 5 is XFS and AFS support)
+ *
+ *   For AFS support look at the end of this file
  */
 
 /*   See hints/none.h for a complete list of options with explanations */
@@ -40,5 +41,19 @@
 #define QS_BTIME dqb_btimelimit
 #define QS_FTIME dqb_ftimelimit
 
-/* for IRIX 6.2 you MUST install the latest xfs patch sets! */
+/* with IRIX 6.2 you *must* install the latest xfs patch sets! */
 #define IRIX_XFS
+
+
+/*
+ *  If you have AFS (arla) uncomment the following define and MAKE lines
+ */
+
+/* #define AFSQUOTA */
+
+/* MakeMaker parameters - do not remove!
+#MAKE AFSHOME=/products/security/athena
+#MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -Wl,-rpath -Wl,$(AFSHOME)/lib -lrpcsvc
+#MAKE INC=-I$(AFSHOME)/include
+#MAKE OBJ=afsquota.o
+*/

@@ -59,7 +59,7 @@ if(defined($bc)) {
   print "Your usage and limits are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
-  warn "Quota::query: ",Quota::strerr,"\n\n";
+  warn "Quota::query($dev): ",Quota::strerr,"\n\n";
 }
 
 ##
@@ -85,7 +85,7 @@ if(defined($bc)) {
   print "Usage and limits for $uid are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
 }
 else {
-  warn Quota::strerr,"\n\n";
+  warn "Quota::query($dev,$uid): ",Quota::strerr,"\n\n";
 }
 
 ##

@@ -4,6 +4,10 @@
 
 #include <sys/param.h>
 
+/* Defines all kinds of standard types (e.g. ulong). You may have to add
+ * types.h include files from other /usr/include/ subdirectories */
+#include <sys/types.h>
+
 /* This is needed for the quotactl syscall. See man quotactl(2) */
 #include <ufs/quota.h>
 
@@ -32,6 +36,20 @@
    Scale it the way, that quota values are in kB */
 #define Q_DIV / 2
 #define Q_MUL * 2
+
+/* Specify what parameters the quotactl call expects (see man quotactl) */
+
+/* BSD style: quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, &dqblk); */
+/* #define Q_CTL_V2 */
+
+/* Linux special: quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, &dqblk); */
+/* #define Q_CTL_V3 */
+
+/* Solaris uses ioctl() instead of quotactl() */
+/* #define USE_IOCTL */
+
+/* if none of the above defined:
+ * old style: quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk); */
 
 /* Normally quota should be reported in file system block sizes.
  * On Linux though all values are converted to 1k blocks. So we
@@ -72,9 +90,9 @@
    use getmntinfo instead then (e.g. in OSF) */
 /* #define NO_MNTENT /**/
 
-/* name of the status entry in struc getquota_rslt and
-   name of the struct or union that contains the quota values.
-   see include <rpcsvc/rquota.h> */
+/* name of the status entry in struc getquota_rslt and name of the struct
+ * or union that contains the quota values. See include <rpcsvc/rquota.h>
+ * or "include/rquota.h" if you're using MY_XDR */
 #define GQR_STATUS gqr_status
 #define GQR_RQUOTA gqr_rquota
 
@@ -97,3 +115,23 @@
 /* #define SFIO_VERSION x.x /**/
 /* #endif /**/
 
+
+/* If you have AFS (e.g. arla-0.13) uncomment the following lines
+ * (i.e. remove the /**/ and the # in front of the MAKE lines too)
+ * and insert your paths to the Kerberos libraries and header files
+ * depending on your compiler you may have to change the compiler
+ * and linker arguments. See man cc(1)
+ */
+/* #define AFSQUOTA */
+
+/* MakeMaker parameters
+#MAKE AFSHOME=/products/security/athena
+#MAKE LD_RUN_PATH=$(AFSHOME)/lib
+#MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
+#MAKE INC=-I$(AFSHOME)/include
+#MAKE OBJ=afsquota.o
+## in case your OS has problems with shared libraries, you can link the
+## required objects in statically instead of using the LD_RUN_PATH and
+## LDLOADLIBS above. You must not uncomment both options!
+#MAKE ARXLIBOBJ=$(AFSHOME)/lib/libkafs.a afssys.o
+*/

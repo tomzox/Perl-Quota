@@ -1,3 +1,10 @@
+Changes in 1.2:  (November 1998)
+- added support for AIX 4.1 (thanks to Wolfgang Friebel (friebel@ifh.de)
+  for providing a development account)
+- added support for AFS (Andrew File System) by arla-0.13
+  on the following platforms: AIX, SunOS, Solaris, HP-UX, IRIX 6
+  with much help from Wolfgang Friebel.
+
 Changes in 1.1.2:  (August 1998)
 - changed names of tar archive and module directory
 - fixed message for getqcarg failure in test.pl
@@ -6,8 +13,8 @@ Changes in 1.1.2:  (August 1998)
 - fixed problems with Solaris automounter (ignore lofs mounts in getqcarg)
 
 Changes in 1.1:  (August 1998)
-- added support for Linux (thanks to Steve Nolan at bookmark.com for
-  providing a development account)
+- added support for Linux (thanks to Steve Nolan (nolansj@bookmark.com)
+  for providing a development account)
 - added OpenBSD 2.2 support, provided by James Shelburne (reilly@eramp.net)
 - added syntax fixes (2 additional #includes) for IRIX 6.4
   provided by Subhendu Ghosh (sghosh@menger.eecs.stevens-tech.edu)

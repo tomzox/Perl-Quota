@@ -17,17 +17,26 @@ extern "C" {
 #define std_fclose fclose
 #endif
 
+#ifdef AFSQUOTA
+#include "afsquota.h"
+#endif
+
 #if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
 #define BCOPY my_bcopy
 #else
 #define BCOPY bcopy
 #endif
 
+#ifndef AIX
 #ifndef NO_MNTENT
 FILE *mtab = NULL;
 #else
 struct statfs *mntp, *mtab = NULL;
 int mtab_size = 0;
+#endif
+#else /* AIX */
+static struct vmount *mtab = NULL;
+static aix_mtab_idx, aix_mtab_count;
 #endif
 
 /*
@@ -218,73 +227,99 @@ query(dev,uid=getuid())
 	  struct quotactl qp;
 	  int fd = -1;
 #endif
-
-	  if((*dev != '/') && (p = strchr(dev, ':'))) {
-#ifndef NO_RPC
-	    *p = '\0';
-	    err = getnfsquota(dev, p+1, uid, &dqblk);
-	    *p = ':';
-#else
-            errno = ENOSYS;
-#endif
-	  }
-	  else {
 #ifdef IRIX_XFS
-	    if(!strncmp(dev, "(XFS)", 5)) {
-	      fs_disk_quota_t xfs_dqblk;
-
-	      err = quotactl(Q_XGETQUOTA, dev+5, uid, CADR &xfs_dqblk);
-	      if(!err) {
-		EXTEND(sp, 8);
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_bcount)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_softlimit)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_hardlimit)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_btimer)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_icount)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_softlimit)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_hardlimit)));
-		PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_itimer)));
-	      }
+	  if(!strncmp(dev, "(XFS)", 5)) {
+	    fs_disk_quota_t xfs_dqblk;
+	    err = quotactl(Q_XGETQUOTA, dev+5, uid, CADR &xfs_dqblk);
+	    if(!err) {
+	      EXTEND(sp, 8);
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_bcount)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_softlimit)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_hardlimit)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_btimer)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_icount)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_softlimit)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_hardlimit)));
+	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_itimer)));
+	    }
+	  }
+	  else
+#endif
+#ifdef AFSQUOTA
+	  if(!strncmp(dev, "(AFS)", 5)) {
+	    if (!afs_check()) {  /* check is *required* as setup! */
+	      errno = EINVAL;
 	    }
 	    else {
-#endif
-#ifdef USE_IOCTL
-	    qp.op = Q_GETQUOTA;
-	    qp.uid = uid;
-	    qp.addr = (char *)&dqblk;
-	    err = (((fd = open(dev, O_RDONLY)) == -1) ||
-	           (ioctl(fd, Q_QUOTACTL, &qp) == -1));
-#else
-#ifdef Q_CTL_V3  /* Linux */
-	    err = quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, CADR &dqblk);
-#else
-#ifdef Q_CTL_V2
-	    err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
-#else
-	    err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
-#endif
-#endif
-#endif
-          }
-	  if(!err) {
-	    EXTEND(sp, 8);
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
+	      int maxQuota, blocksUsed;
 
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
+	      err = afs_getquota(dev + 5, &maxQuota, &blocksUsed);
+	      if(!err) {
+		EXTEND(sp, 8);
+		PUSHs(sv_2mortal(newSViv(blocksUsed)));
+		PUSHs(sv_2mortal(newSViv(maxQuota)));
+		PUSHs(sv_2mortal(newSViv(maxQuota)));
+		PUSHs(sv_2mortal(newSViv(0)));
+		PUSHs(sv_2mortal(newSViv(0)));
+		PUSHs(sv_2mortal(newSViv(0)));
+		PUSHs(sv_2mortal(newSViv(0)));
+		PUSHs(sv_2mortal(newSViv(0)));
+	      }
+	    }
 	  }
+	  else
+#endif
+	  {
+	    if((*dev != '/') && (p = strchr(dev, ':'))) {
+#ifndef NO_RPC
+	      *p = '\0';
+	      err = getnfsquota(dev, p+1, uid, &dqblk);
+	      *p = ':';
+#else /* NO_RPC */
+	      errno = ENOSYS;
+#endif /* NO_RPC */
+            }
+	    else {
 #ifdef USE_IOCTL
-	  if(fd != -1) close(fd);
+	      qp.op = Q_GETQUOTA;
+	      qp.uid = uid;
+	      qp.addr = (char *)&dqblk;
+	      err = (((fd = open(dev, O_RDONLY)) == -1) ||
+		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
+#else /* not USE_IOCTL */
+#ifdef Q_CTL_V3  /* Linux */
+	      err = quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, CADR &dqblk);
+#else /* not Q_CTL_V3 */
+#ifdef Q_CTL_V2
+#ifdef AIX
+              /* AIX quotactl doesn't fail if path does not exist!? */
+              struct stat st;
+	      if (stat(dev, &st)) err = 1;
+	      else
 #endif
-#ifdef IRIX_XFS
+	      err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
+#else /* not Q_CTL_V2 */
+	      err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
+#endif /* not Q_CTL_V2 */
+#endif /* Q_CTL_V3 */
+#endif /* not USE_IOCTL */
+	    }
+	    if(!err) {
+	      EXTEND(sp, 8);
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
+	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
+	    }
+#ifdef USE_IOCTL
+	    if(fd != -1) close(fd);
+#endif
 	  }
-#endif
-	}
+        }
 
 int
 setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
@@ -321,38 +356,48 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 	    xfs_dqblk.d_flags         = XFS_USER_QUOTA;
 	    RETVAL = quotactl(Q_XSETQLIM, dev+5, uid, CADR &xfs_dqblk);
 	  }
-	  else {
+	  else
 	    /* if not xfs, than it's a classic IRIX efs file system */
 #endif
-	  dqblk.QS_BSOFT = bs Q_MUL;
-	  dqblk.QS_BHARD = bh Q_MUL;
-	  dqblk.QS_BTIME = timelimflag;
-	  dqblk.QS_FSOFT = fs;
-	  dqblk.QS_FHARD = fh;
-	  dqblk.QS_FTIME = timelimflag;
-#ifdef USE_IOCTL
-	  if((fd = open(dev, O_RDONLY)) != -1) {
-	    RETVAL = (ioctl(fd, Q_QUOTACTL, &qp) != 0);
-	    close(fd);
+#ifdef AFSQUOTA
+	  if(!strncmp(dev, "(AFS)", 5)) {
+	    if (!afs_check()) {  /* check is *required* as setup! */
+	      errno = EINVAL;
+	      RETVAL = -1;
+	    }
+	    else
+	      RETVAL = afs_setqlim(dev + 5, bh);
 	  }
 	  else
-	    RETVAL = -1;
+#endif
+	  {
+	    dqblk.QS_BSOFT = bs Q_MUL;
+	    dqblk.QS_BHARD = bh Q_MUL;
+	    dqblk.QS_BTIME = timelimflag;
+	    dqblk.QS_FSOFT = fs;
+	    dqblk.QS_FHARD = fh;
+	    dqblk.QS_FTIME = timelimflag;
+#ifdef USE_IOCTL
+	    if((fd = open(dev, O_RDONLY)) != -1) {
+	      RETVAL = (ioctl(fd, Q_QUOTACTL, &qp) != 0);
+	      close(fd);
+	    }
+	    else
+	      RETVAL = -1;
 #else
 #ifdef Q_CTL_V3  /* Linux */
-	  dqblk.QS_BCUR  = 0;
-	  dqblk.QS_FCUR  = 0;
-	  RETVAL = quotactl (QCMD(Q_SETQLIM,USRQUOTA), dev, uid, CADR &dqblk);
+	    dqblk.QS_BCUR  = 0;
+	    dqblk.QS_FCUR  = 0;
+	    RETVAL = quotactl (QCMD(Q_SETQLIM,USRQUOTA), dev, uid, CADR &dqblk);
 #else
 #ifdef Q_CTL_V2
-	  RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
+	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
 #else
-	  RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
+	    RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
 #endif
 #endif
 #endif
-#ifdef IRIX_XFS
 	  }
-#endif
 	}
 	OUTPUT:
 	RETVAL
@@ -361,6 +406,19 @@ int
 sync(dev=NULL)
 	char *	dev
 	CODE:
+#ifdef AFSQUOTA
+	if ((dev != NULL) && !strncmp(dev, "(AFS)", 5)) {
+	  if (!afs_check()) {
+	    errno = EINVAL;
+	    RETVAL = -1;
+	  }
+	  else {
+	    int foo1, foo2;
+	    RETVAL = (afs_getquota(dev + 5, &foo1, &foo2) ? -1 : 0);
+	  }
+	}
+	else
+#endif
 #ifdef USE_IOCTL
 	{
 	  struct quotactl qp;
@@ -381,33 +439,42 @@ sync(dev=NULL)
 	    RETVAL = -1;
 	}
 #else
+        {
 #ifdef Q_CTL_V3  /* Linux */
-	RETVAL = quotactl(QCMD(Q_SYNC, USRQUOTA), dev, 0, NULL);
+	  RETVAL = quotactl(QCMD(Q_SYNC, USRQUOTA), dev, 0, NULL);
 #else
 #ifdef Q_CTL_V2
-	if(dev == NULL) dev = "/";
-	RETVAL = quotactl(dev, QCMD(Q_SYNC, USRQUOTA), 0, NULL);
+#ifdef AIX
+          struct stat st;
+#endif
+	  if(dev == NULL) dev = "/";
+#ifdef AIX
+	  if (stat(dev, &st)) RETVAL = -1;
+	  else
+#endif
+	  RETVAL = quotactl(dev, QCMD(Q_SYNC, USRQUOTA), 0, NULL);
 #else
 #ifdef IRIX_XFS
 #define XFS_UQUOTA (XFS_QUOTA_UDQ_ACCT|XFS_QUOTA_UDQ_ENFD)
-	/* Q_SYNC is not supported on XFS filesystems, so emulate it */
-	if ((dev != NULL) && (!strncmp(dev, "(XFS)", 5))) {
-	  fs_quota_stat_t fsq_stat;
+	  /* Q_SYNC is not supported on XFS filesystems, so emulate it */
+	  if ((dev != NULL) && (!strncmp(dev, "(XFS)", 5))) {
+	    fs_quota_stat_t fsq_stat;
 
-	  sync();
+	    sync();
 
-	  RETVAL = quotactl(Q_GETQSTAT, dev+5, 0, CADR &fsq_stat);
+	    RETVAL = quotactl(Q_GETQSTAT, dev+5, 0, CADR &fsq_stat);
 
-	  if (!RETVAL && ((fsq_stat.qs_flags & XFS_UQUOTA) != XFS_UQUOTA)) {
-	    errno = ENOENT;
-	    RETVAL = -1;
+	    if (!RETVAL && ((fsq_stat.qs_flags & XFS_UQUOTA) != XFS_UQUOTA)) {
+	      errno = ENOENT;
+	      RETVAL = -1;
+	    }
 	  }
+	  else
+#endif
+	  RETVAL = quotactl(Q_SYNC, dev, 0, NULL);
+#endif
+#endif
         }
-	else
-#endif
-	RETVAL = quotactl(Q_SYNC, dev, 0, NULL);
-#endif
-#endif
 #endif
 	OUTPUT:
 	RETVAL
@@ -442,6 +509,7 @@ int
 setmntent()
 	CODE:
 	{
+#ifndef AIX
 #ifndef NO_MNTENT
 #ifndef NO_OPEN_MNTTAB
 	  if(mtab != NULL) endmntent(mtab);
@@ -461,6 +529,35 @@ setmntent()
 	    RETVAL = 0;
 	  mntp = mtab;
 #endif
+#else /* AIX */
+	  int count, space;
+
+          if(mtab != NULL) free(mtab);
+	  count = mntctl(MCTL_QUERY, sizeof(space), (struct vmount *) &space);
+	  if (count == 0) {
+	    mtab = (struct vmount *) malloc(space);
+	    if (mtab != NULL) {
+	      count = mntctl(MCTL_QUERY, space, mtab);
+	      if (count > 0) {
+	        aix_mtab_count = count;
+	        aix_mtab_idx   = 0;
+		RETVAL = 0;
+	      }
+	      else {  /* error or size changed between calls */
+		if (count == 0) errno = EINTR;
+	        RETVAL = -1;
+	      }
+	    }
+	    else
+	      RETVAL = -1;
+	  }
+	  else if (count < 0)
+	    RETVAL = -1;
+	  else { /* should never happen */
+	    errno = ENOENT;
+	    RETVAL = -1;
+	  }
+#endif
 	}
 	OUTPUT:
 	RETVAL
@@ -469,6 +566,7 @@ void
 getmntent()
 	PPCODE:
 	{
+#ifndef AIX
 #ifndef NO_MNTENT
 #ifndef NO_OPEN_MNTTAB
 	  struct mntent *mntp;
@@ -508,6 +606,59 @@ getmntent()
 	    mntp++;
 	  }
 #endif
+#else /* AIX */
+	  struct vmount *vmp;
+	  char *cp;
+	  int i;
+
+          if ((mtab != NULL) && (aix_mtab_idx < aix_mtab_count)) {
+	    cp = (char *) mtab;
+	    for (i=0; i<aix_mtab_idx; i++) {
+	      vmp = (struct vmount *) cp;
+	      cp += vmp->vmt_length;
+	    }
+	    vmp = (struct vmount *) cp;
+	    aix_mtab_idx += 1;
+
+	    EXTEND(sp,4);
+	    if (vmp->vmt_gfstype != MNT_NFS) {
+	      cp = vmt2dataptr(vmp, VMT_OBJECT);
+	      PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
+	    }
+	    else {
+	      uchar *mp, *cp2;
+	      cp = vmt2dataptr(vmp, VMT_HOST);
+	      cp2 = vmt2dataptr(vmp, VMT_OBJECT);
+	      mp = malloc(strlen(cp) + strlen(cp2) + 2);
+	      if (mp != NULL) {
+		strcpy(mp, cp);
+		strcat(mp, ":");
+		strcat(mp, cp2);
+	        PUSHs(sv_2mortal(newSVpv(mp, strlen(mp))));
+		free(mp);
+	      }
+	      else {
+	        cp = "?";
+	        PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
+	      }
+	    }
+	    cp = vmt2dataptr(vmp, VMT_STUB);
+	    PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
+
+	    switch(vmp->vmt_gfstype) {
+	      case MNT_AIX:   cp = "aix"; break;
+	      case MNT_NFS:   cp = "nfs"; break;
+	      case MNT_JFS:   cp = "jfs"; break;
+	      case 4:         cp = "afs"; break;
+	      case MNT_CDROM: cp = "cdrom,ignore"; break;
+	      default:        cp = "unknown,ignore"; break;
+	    }
+	    PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
+
+	    cp = vmt2dataptr(vmp, VMT_ARGS);
+	    PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
+	  }
+#endif
 	}
 
 void
@@ -515,6 +666,7 @@ endmntent()
 	PPCODE:
 	{
 	  if(mtab != NULL) {
+#ifndef AIX
 #ifndef NO_MNTENT
 #ifndef NO_OPEN_MNTTAB
 	    endmntent(mtab);   /* returns always 1 in SunOS */
@@ -525,26 +677,38 @@ endmntent()
 	    /* if(mtab != NULL) free(mtab); */
 	    mtab = NULL;
 #endif
+#else /* AIX */
+            free(mtab);
+	    mtab = NULL;
+#endif
 	  }
 	}
 
 char *
 getqcargtype()
 	CODE:
+	static char ret[20];
 #ifdef USE_IOCTL
-	RETVAL = "mntpt";
+	strcpy(ret, "mntpt");
+#else
+#ifdef AIX
+	strcpy(ret, "any");
 #else
 #ifdef Q_CTL_V2
-	RETVAL = "path";
+	strcpy(ret, "path");
 #else
 #ifdef IRIX_XFS
-	RETVAL = "dev(XFS)";
+	strcpy(ret, "dev,XFS");
 #else
 /* this branch applies to Q_CTL_V3 (Linux) too */
-	RETVAL = "dev";
+	strcpy(ret, "dev");
 #endif
 #endif
 #endif
+#endif
+#ifdef AFSQUOTA
+        strcat(ret, ",AFS");
+#endif
+        RETVAL = ret;
 	OUTPUT:
 	RETVAL
-

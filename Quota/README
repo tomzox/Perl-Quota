@@ -1,14 +1,14 @@
-Quota/README  v1.1.2  August/98  TOMZO
+Quota/README  v1.2  November/98  TOMZO
 
 Quota extension module for Perl
 -------------------------------
 
 Author:   Tom Zoerner
-	  Grundig CTV Software Development, Fuerth, Germany
-          Tom.Zoerner@informatik.uni-erlangen.de
+	  currently employed at Grundig TV Software Development, Germany
+          best reached at: Tom.Zoerner@informatik.uni-erlangen.de
 
-Version:   1.1.2
-Date:      August 1998
+Version:   1.2
+Date:      November 1998
 DSLI-code: Rdcf
            - stable release
 	   - support by developer
@@ -20,7 +20,9 @@ Supported: SunOS 4.1.3,
 	   IRIX 5.2 & 5.3 & 6.2 & 6.4,
            OSF/1,
 	   BSDI 2 (no RPC),
-	   Linux 1.3.46 and later
+	   Linux RedHat, SuSE, Debian - kernel 2.0.35 and later,
+	   AIX 4.1.
+	   AFS on many of the above, however disabled by default (see INSTALL)
 Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 Author:    TOMZO  (Tom Zoerner)
 Copyright: none / Public Domain
@@ -102,7 +104,9 @@ DESCRIPTION
 	 hard limits. If the soft limit	is exceeded, writes by
 	 this user will	fail for blocks	or inodes after	$bt or
 	 $it is	reached. These times are expressed as usual, i.e.
-	 in elapsed seconds since 00:00	1/Jan/1970 GMT.
+	 in elapsed seconds since 00:00	1/Jan/1970 GMT. When the
+	 quota limits are not exceeded, the timestamps are
+	 meaningless and should be ignored.
 
      Quota::setqlim($dev, $uid,	$bs,$bh, $is,$ih, $tlo)
 	 Sets quota limits for the given user. Meanings	of $dev,
@@ -233,9 +237,10 @@ AUTHOR
 
      Additional	testing	and porting by David Lee
      (T.D.Lee@durham.ac.uk), Tobias Oetiker (oetiker@ee.ethz.ch)
-     and Jim Hribnak (hribnak@nucleus.com).  Special thanks go to
-     Steve Nolan at bookmark.com for providing me with an account
-     and hence finally allowing	me to finish the Linux port.
+     and Jim Hribnak (hribnak@nucleus.com).  Special thanks to
+     Steve Nolan (nolansj@bookmark.com) and Wolfgang Friebel
+     (friebel@ifh.de) for providing me with accounts for the Linux
+     and AIX ports.
 
 SEE ALSO
      perl(1), edquota(1m), quotactl(2) or quotactl(7I),

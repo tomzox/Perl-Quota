@@ -1,7 +1,5 @@
-Quota/INSTALL V1.1  Aug/98  TOMZO
-
-INSTALL
-=======
+INSTALLATION INSTRUCTIONS
+=========================
 
 Usually all you should have to do is:
 
@@ -11,7 +9,10 @@ Usually all you should have to do is:
 	make install
 	make clean
 
-If that fails, regard the following instructions step by step:
+If that fails, regard the following instructions step by step.
+
+If you want support for AFS, you need the arla package (untested with
+other AFS implementations) and the Kerberos libraries. See 2c below.
 
 1)  On Linux systems make sure you have compiled your kernel with quota
     support. You also need the quota utilities and headers installed from
@@ -39,6 +40,14 @@ If that fails, regard the following instructions step by step:
     don't have a correctly working rpc.rquotad. To achive that, simply
     replace line 58 in rquota_server.c "*blksize = st.st_blksize;" with
     "*blksize = 1024;"
+
+ c) If you want support for AFS, you need first to install the arla
+    package (for Linux be sure to install the static libs too). Then
+    you need to to edit the hints file. Uncomment the line where AFSQUOTA
+    is defined and remove the # in front of all lines starting with MAKE
+    (those lines are automatically added to the Makefile in step #3).
+    Insert your paths to the Kerberos library and headers at the
+    appropriate places.
 
 3)  Generate the Makefile: perl Makefile.PL
 

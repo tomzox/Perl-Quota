@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.1';
+$VERSION = '1.2';
 
 bootstrap Quota;
 
@@ -42,9 +42,10 @@ sub getdev {
 ##
 sub getqcarg {
   ($#_ > 0) && croak("Usage: Quota::getqcarg(path)");
-  my($dev) = (stat(($_[0] || ".")))[0];
+  my($target) = ($_[0] || ".");
+  my($dev) = (stat($target))[0];
   my($ret) = undef;
-  my($argtyp) = getqcargtype();
+  my($argtyp,$fsupp) = (getqcargtype() =~ /([^,]*),(.*)/);
   my($fsname,$path,$fstyp);
 
   if($dev && !Quota::setmntent()) {
@@ -54,18 +55,19 @@ sub getqcarg {
 	if($fsname !~ m#^/#) { $ret = $fsname }
 	elsif($argtyp eq "dev")  { $ret = $fsname }
 	elsif($argtyp eq "path") { $ret = "$path/quotas" }
-	elsif($argtyp eq "dev(XFS)") {
-	  if($fstyp eq "xfs") { $ret = "(XFS)$fsname"; }
-	  else { $ret = "$fsname"; }
-	}
+	elsif($argtyp eq "any")  { $ret = "$target" }
+	elsif($argtyp eq "dev") { $ret = "$fsname"; }
 	else { $ret = $path }  #($argtyp eq "mntpt")
+        # XFS and AFS quotas require separate access methods
+        if   (($fstyp eq "xfs") && ($fsupp =~ /XFS/)) { $ret = "(XFS)$ret"; }
+        elsif((($fstyp eq "afs") || ($fsname eq "AFS")) &&
+              ($fsupp =~ /AFS/)) { $ret = "(AFS)$target"; }
         last;
       }
     }
     $! = 0;
   }
   Quota::endmntent();
-  ##return ($_[0] || ".") if ($argtyp eq "path") && ($ret =~ m#^/#);
   $ret;
 }
 
@@ -82,6 +84,7 @@ sub strerr {
                          { $str = "No quotas on this system" }
     elsif($! == &ENODEV) { $str = "Not a standard file system" }
     elsif($! == &EPERM)  { $str = "Not privileged" }
+    elsif($! == &EACCES) { $str = "Access denied" }
     elsif($! == &ESRCH)  { $str = "No quota for this user" }
     elsif($! == &EUSERS) { $str = "Quota table overflow" }
     else { die "unknown quota error\n" }
@@ -163,6 +166,8 @@ I<$bs> and I<$is> are the soft limits, I<$bh> and I<$ih> hard limits. If the
 soft limit is exceeded, writes by this user will fail for blocks or
 inodes after I<$bt> or I<$it> is reached. These times are expressed
 as usual, i.e. in elapsed seconds since 00:00 1/Jan/1970 GMT.
+When the quota limits are not exceeded, the timestamps have no
+meaning and should be ignored.
 
 =item I<Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo)>
 
@@ -297,9 +302,9 @@ Jim Hribnak (hribnak@nucleus.com),
 David Lloyd (cclloyd@monotreme.cc.missouri.edu),
 James Shelburne (reilly@eramp.net) and
 Subhendu Ghosh (sghosh@menger.eecs.stevens-tech.edu).
-Special thanks go to Steve Nolan at bookmark.com for providing
-me with an account and hence finally allowing me to finish the
-Linux port.
+Special thanks to Steve Nolan (nolansj@bookmark.com) and
+Wolfgang Friebel (friebel@ifh.de)
+for providing me with accounts for the Linux and AIX ports.
 
 =head1 SEE ALSO
 
