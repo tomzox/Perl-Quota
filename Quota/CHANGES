@@ -1,3 +1,8 @@
+Changes in 1.4.4 (June 2002)
+- bugfix in Quota::getqcarg(): the function failed if the device id returned
+  by stat(2) for the queried path was zero (e.g. for the root fs on NetBSD)
+  Thanks to Jake Fan (jake@chaogic.com) for reporting this bug.
+
 Changes in 1.4.3 (May 2002)
 - updated for new version of Solaris VxFS (Veritas Filesystem)
   by David Lee (T.D.Lee@durham.ac.uk)

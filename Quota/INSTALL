@@ -9,7 +9,8 @@ Usually all you have to do is:
 	make install
 	make clean
 
-If that fails, regard the following instructions step by step.
+If this fails, regard the following instructions step by step.
+Note that this module does not support installation by the CPAN(++) module.
 
 Options:
 
@@ -101,4 +102,4 @@ mail the name of used OS and version numbers of OS (uname -rs) and module.
 
 Tom
 ---
-tomzo@nefkom.net
+email: tomzo AT nefkom DOT net

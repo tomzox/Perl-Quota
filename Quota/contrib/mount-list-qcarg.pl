@@ -17,5 +17,7 @@ foreach (@Mtab)
 {
    $path = (split(/#/))[2];
    $qcarg = Quota::getqcarg($path);
-   print "$_#$qcarg#\n";
+   $qcarg = "*UNDEF*" unless defined $qcarg;
+   $dev = (stat($path))[0];
+   print "${_}$qcarg#$dev\n";
 }
