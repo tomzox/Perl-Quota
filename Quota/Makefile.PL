@@ -9,16 +9,22 @@
 chop($os = `uname -rs 2>/dev/null`);
 if   ($os =~ /^SunOS 4\.1/){ $config='sunos_4_1.h'; }
 elsif($os =~ /^SunOS 5/)   { $config='solaris_2.h'; }
-elsif($os =~ /^HP-UX (A\.09|B\.10)/) { $config='hpux_9+10.h'; }
+elsif($os =~ /^HP-UX (A\.09|B\.10|C\.11)/) { $config='hpux.h'; }
 elsif($os =~ /^IRIX 5/)    { $config='irix_5.h'; }
 elsif($os =~ /^IRIX\d* 6/) { $config='irix_6.h'; }
-elsif($os =~ /^OSF1/)      { $config='dec_osf_3.h'; }
+elsif($os =~ /^OSF1/)      { $config='dec_osf.h'; }
 elsif($os =~ /^BSD\/OS 2/) { $config='bsdi_2.h'; }
+elsif($os =~ /^FreeBSD/)   { $config='freebsd.h'; }
 elsif($os =~ /^Linux 2/)   { $config='linux.h'; $extraobj='quotactl.o'; }
 elsif($os =~ /^AIX/)       { $config='aix_4_1.h'; }
 
 if (defined($config)) {
-  printf "Using hints/$config for config.h\n";
+  print "Using hints/$config for config.h\n";
+  if (-e "config.h" && (!(-l "config.h") || (readlink("config.h") ne "hints/$config"))) {
+     die "\nFATAL: config.h already exists.\n\n" .
+         "You need to do a `make clean' before you configure for a new platform.\n".
+	 "If that doesn't help, remove config.h manually.\n";
+  }
 }
 else {
   warn "WARNING: No appropriate hints found for this OS: '$os - see INSTALL'\n";
@@ -43,6 +49,18 @@ if ( -d "/afs" ) {
   }
 }
 
+# check to see if we have a kernel module for the Veritas file system
+if ( $os =~ /^SunOS/ ) {
+   if ( -f '/kernel/fs/vxfs' ) {
+     $hasvxfs = '-DSOLARIS_VXFS';
+     $extraobj = "$extraobj vxquotactl.o";
+     print "Configured with the VERITAS File System on Solaris\n";
+   }
+   else {
+     print "Configured without VxFS support\n";
+   }
+}
+
 #-----------------------------------------------------------------------------#
 
 use ExtUtils::MakeMaker;
@@ -51,7 +69,7 @@ use ExtUtils::MakeMaker;
                'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) stdio_wrap.o '.
                                  $extraobj .' '. $hint{'OBJ'},
                'INC'          => $hint{'INC'},
-               'DEFINE'       => $hasafs,
+               'DEFINE'       => "$hasafs $hasvxfs",
                'LIBS'         => [ '-lrpcsvc' ],
                'H'            => [ 'config.h' ],
                'VERSION_FROM' => 'Quota.pm',

@@ -54,18 +54,21 @@ sub getqcarg {
 
   if($dev && ($target ne "") && !Quota::setmntent()) {
     while(($fsname,$path,$fstyp) = Quota::getmntent()) {
-      next if $fstyp =~ /^(lofs|ignore|auto.*)$/;
+      next if $fstyp =~ /^(lofs|ignore|auto.*|proc)$/;
       if($dev == (stat($path))[0]) {
 	if($fsname =~ m|^[^/]+:/|) { $ret = $fsname }   #NFS host:/path
+        elsif (($fstyp =~ /^nfs/i) && ($fsname =~ m#^(/.*)\@([^/]+)$#))
+                                   { $ret = "$2:$1" }   #NFS /path@host
 	elsif($argtyp eq "dev")    { $ret = $fsname }
 	elsif($argtyp eq "qfile")  { $ret = "$path/quotas" }
 	elsif($argtyp eq "any")    { $ret = $target }
 	else                       { $ret = $path }     #($argtyp eq "mntpt")
 
-        # XFS and AFS quotas require separate access methods
-        if   (($fstyp eq "xfs") && ($fsupp =~ /XFS/)) { $ret = "(XFS)$ret"; }
+        # XFS, VxFS and AFS quotas require separate access methods
+        if   (($fstyp eq "xfs") && ($fsupp =~ /,XFS/)) { $ret = "(XFS)$ret" }
+        elsif(($fstyp eq "vxfs") && ($fsupp =~ /,VXFS/)) { $ret = "(VXFS)$ret" }
         elsif((($fstyp eq "afs") || ($fsname eq "AFS")) &&
-              ($fsupp =~ /AFS/)) { $ret = "(AFS)$target"; }
+              ($fsupp =~ /,AFS/)) { $ret = "(AFS)$target"; }
         last;
       }
     }
@@ -144,7 +147,7 @@ implementations needs as argument) of the according file system.
 
 =over 4
 
-=item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid)>
+=item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $isgrp)>
 
 Get current usage and quota limits for a given file system and user.
 The user is specified by its numeric uid; defaults to the process'
@@ -170,10 +173,20 @@ I<$bs> and I<$is> are the soft limits, I<$bh> and I<$ih> hard limits. If the
 soft limit is exceeded, writes by this user will fail for blocks or
 inodes after I<$bt> or I<$it> is reached. These times are expressed
 as usual, i.e. in elapsed seconds since 00:00 1/Jan/1970 GMT.
-When the quota limits are not exceeded, the timestamps have no
-meaning and should be ignored.
 
-=item I<Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo)>
+Note: When the quota limits are not exceeded, the timestamps
+are meaningless and should be ignored. When hard and soft
+limits are zero, there is no limit for that user. On most
+systems Quota::query will return undef in that case and
+errno will be set to ESRCH.
+
+When I<$isgrp> is given and set to 1, I<$uid> is taken as gid and
+group quotas are queried. This is B<not> supported across RPC and
+even locally only on a few architectures (e.g. Linux and other BSD
+based Unix variants, OSF/1 and  AIX - check the quotactl(2) man page
+on your systems). If unsupported, this flag is ignored.
+
+=item I<Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $isgrp)>
 
 Sets quota limits for the given user. Meanings of I<$dev>, I<$uid>,
 I<$bs>, I<$bh>, I<$is> and I<$ih> are the same as in B<Quota::query>.
@@ -185,6 +198,10 @@ This is the default.
 I<1>: The time limits are set to B<7.0 days>.
 More alternatives (i.e. setting a specific time) aren't available in
 most implementations.
+
+When I<$isgrp> is given and set to 1, I<$uid> is taken as gid and
+group quota limits are set. This is supported only on a few
+architectures (see above). If unsupported, this flag is ignored.
 
 Note: if you want to set the quota of a particular user to zero, i.e.
 no write permission, you must not set all limits to zero, since that
@@ -292,23 +309,17 @@ Unfortunately on Linux the rpc.rquotad reports a block size of
 your Linux rquotad or keep B<#define LINUX_RQUOTAD_BUG> defined,
 which will Quota::query always let assume all remote partners
 in reality report 1kB blocks. Of course that'll break with mixed
-systems, so better fix your rquotad.
+systems, so better fix your rquotad. For more info on other Linux
+bugs please see INSTALL.
 
-=head1 AUTHOR
+=head1 AUTHORS
 
-This module was written 1995 by Tom Zoerner
+This module was created 1995 by Tom Zoerner
 (Tom.Zoerner@informatik.uni-erlangen.de)
-
-Additional testing and porting by
-David Lee (T.D.Lee@durham.ac.uk),
-Tobias Oetiker (oetiker@ee.ethz.ch),
-Jim Hribnak (hribnak@nucleus.com),
-David Lloyd (cclloyd@monotreme.cc.missouri.edu),
-James Shelburne (reilly@eramp.net) and
-Subhendu Ghosh (sghosh@menger.eecs.stevens-tech.edu).
-Special thanks to Steve Nolan (nolansj@bookmark.com) and
-Wolfgang Friebel (friebel@ifh.de)
-for providing me with accounts for the Linux and AIX ports.
+and since then continually improved and ported to
+many operating- and file-systems. Numerous people
+have contributed to this process; for a complete
+list of names please see the CHANGES document.
 
 =head1 SEE ALSO
 

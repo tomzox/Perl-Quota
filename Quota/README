@@ -2,25 +2,27 @@ Quota extension module for Perl
 -------------------------------
 
 Author:    Tom Zoerner
-           currently employed at Grundig as TV Software Engineer
+           currently employed at Grundig AG as TV Software Engineer
            best reached at: Tom.Zoerner@informatik.uni-erlangen.de
 
-Version:   1.2.3
-Date:      April 1999
+Version:   1.3
+Date:      January 2000
 DSLI-code: Rdcf
            - stable release
            - support by developer
            - C compiler required for installation
            - plain functions, no references used
 Supported: SunOS 4.1.3,
-           Solaris 2.4 & 2.5 & 2.6,
-           HP-UX 9.0x & 10.10 & 10.20,
+           Solaris 2.4 & 2.5 & 2.6 (NOT 2.7),
+           HP-UX 9.0x & 10.10 & 10.20 & 11.00,
            IRIX 5.2 & 5.3 & 6.2 - 6.5,
-           OSF/1,
+           OSF/1 & Digital Unix 4,
            BSDI 2 (no RPC),
+	   FreeBSD 3,
            Linux RedHat, SuSE, Debian - kernel 2.0.30 and later,
-           AIX 4.1.
-           AFS (Andrew File System) on many of the above (see INSTALL)
+           AIX 4.1 & 4.2.
+           AFS (Andrew File System) on many of the above (see INSTALL),
+	   VxFS (Veritas File System) on Solaris 2.
 Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 Author:    TOMZO  (Tom Zoerner)
 Copyright: none / Public Domain
@@ -44,14 +46,14 @@ SYNOPSIS
 
          ($block_curr, $block_soft, $block_hard, $block_timelimit,
           $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
-         Quota::query($dev [,$uid]);
+         Quota::query($dev [,$uid [,isgrp]]);
 
          ($block_curr, $block_soft, $block_hard, $block_timelimit,
           $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
          Quota::rpcquery($host, $path [,$uid]);
 
          Quota::setqlim($dev, $uid, $block_soft, $block_hard,
-                        $inode_soft, $inode_hard [,$tlo]);
+                        $inode_soft, $inode_hard [,$tlo [,isgrp]]);
 
          Quota::sync([$dev]);
 
@@ -73,7 +75,7 @@ DESCRIPTION
 
      Functions
 
-     ($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid)
+     ($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $isgrp)
          Get current usage and quota limits for a given file
          system and user.  The user is specified by its numeric
          uid; defaults to the process' real uid.
@@ -102,11 +104,22 @@ DESCRIPTION
          hard limits. If the soft limit is exceeded, writes by
          this user will fail for blocks or inodes after $bt or
          $it is reached. These times are expressed as usual, i.e.
-         in elapsed seconds since 00:00 1/Jan/1970 GMT. When the
-         quota limits are not exceeded, the timestamps are
-         meaningless and should be ignored.
+         in elapsed seconds since 00:00 1/Jan/1970 GMT.
+	 
+	 Note: When the quota limits are not exceeded, the timestamps
+	 are meaningless and should be ignored. When hard and soft
+	 limits are zero, there is no limit for that user. On most
+	 systems Quota::query will return undef in that case and
+	 errno will be set to ESRCH.
 
-     Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo)
+         When $isgrp is given and set to 1, $uid is taken as gid
+         and group quotas are queried. This is not supported across
+         RPC and even locally only on a few architectures (e.g. Linux
+         and other BSD based Unix variants, OSF/1 and AIX - check the
+         quotactl(2) man page on your systems). If unsupported, this
+         flag is ignored.
+
+     Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $isgrp)
          Sets quota limits for the given user. Meanings of $dev,
          $uid, $bs, $bh, $is and $ih are the same as in
          Quota::query.
@@ -117,6 +130,11 @@ DESCRIPTION
          by this user.  This is the default.  1: The time limits
          are set to 7.0 days.  More alternatives (i.e. setting a
          specific time) aren't available in most implementations.
+
+         When $isgrp is given and set to 1, $uid is taken as gid
+         and group quota limits are set. This is supported only on a
+         few architectures (see above). If unsupported, this flag
+         is ignored.
 
          Note: if you want to set the quota of a particular user
          to zero, i.e.  no write permission, you must not set all
@@ -227,18 +245,16 @@ BUGS
      keep #define LINUX_RQUOTAD_BUG defined, which will
      Quota::query always let assume all remote partners in
      reality report 1kB blocks. Of course that'll break with
-     mixed systems, so better fix your rquotad.
+     mixed systems, so better fix your rquotad. For more info
+     on other Linux bugs please see INSTALL.
 
-AUTHOR
-     This module was written 1995 by Tom Zoerner
+AUTHORS
+     This module was created 1995 by Tom Zoerner
      (Tom.Zoerner@informatik.uni-erlangen.de)
-
-     Additional testing and porting by David Lee
-     (T.D.Lee@durham.ac.uk), Tobias Oetiker (oetiker@ee.ethz.ch)
-     and Jim Hribnak (hribnak@nucleus.com).  Special thanks to
-     Steve Nolan (nolansj@bookmark.com) and Wolfgang Friebel
-     (friebel@ifh.de) for providing me with accounts for the Linux
-     and AIX ports.
+     and since then continually improved and ported to
+     many operating- and file-systems. Numerous people
+     have contributed to this process; for a complete
+     list of names please see the CHANGES document.
 
 SEE ALSO
      perl(1), edquota(1m), quotactl(2) or quotactl(7I),

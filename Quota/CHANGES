@@ -1,3 +1,27 @@
+Changes in 1.3:  (January 2000)
+- bugfix/enhanced support for OSF/1 and Digital Unix:
+  getqcarg used wrong path to quotas file and
+  NFS file systems were not recognized when in "/path@host" format in mtab
+  provided by Victor Mora (Victor.Mora@ac.upc.es) and
+  Alessandro Miotto (Alessandro.Miotto@cern.ch)
+- added support for FreeBSD.
+  provided by Kurt Jaeger (pi@complx.LF.net)
+  and Jon Schewe (schewe@tcfreenet.org)
+- added support for Veritas file system (VxFS) on Solaris
+  provided by David Lee (T.D.Lee@durham.ac.uk),
+  Michael Gerdts (gerdts@cae.wisc.edu) and
+  Daniel Hagerty (hag@shore.net).
+  Beta-tested by John Randell Smith (jrsmith@eng.utah.edu).
+- added workaround for yet another bug in Linux rpc.rquotad:
+  rquotad reports grace times as absolute values instead of relative
+  bug found by Seth Vidal (skvidal@phy.duke.edu)
+- fixed grace time output for Y2K in test.pl
+- fixed bug in group-quota patch as pointed out by asun@cobaltnet.com
+  incorporated the patch into the distribution.
+- fixed possible integer overflow in RPC quota block size conversions for
+  very large quota limits; pointed out by Peter.Pickford (ppickfor@jaguar.com)
+- added warning to Makefile.PL if config.h symlink already exists
+
 Changes in 1.2.3:  (April 1999)
 - added patch-file "group-quota.patch" that provides optional
   support for group-quotas (on some OS versions and localhost only)

@@ -21,6 +21,10 @@ extern "C" {
 #include "include/afsquota.h"
 #endif
 
+#ifdef SOLARIS_VXFS
+#include "include/vxquotactl.h"
+#endif
+
 #if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
 #define BCOPY my_bcopy
 #else
@@ -120,23 +124,40 @@ getnfsquota(hostp, fsnamep, uid, dqp)
       dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
       dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
 #else /* not buggy */
-      dqp->QS_BHARD =
-	  gq_rslt.GQR_RQUOTA.rq_bhardlimit *
-	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
-      dqp->QS_BSOFT =
-	  gq_rslt.GQR_RQUOTA.rq_bsoftlimit *
-	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
-      dqp->QS_BCUR =
-	  gq_rslt.GQR_RQUOTA.rq_curblocks *
-	  gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
+      if (gq_rslt.GQR_RQUOTA.rq_bsize >= DEV_QBSIZE) {
+	/* we rely on the fact that block sizes are always powers of 2 */
+	/* so the conversion factor will never be a fraction */
+        int qb_fac = gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
+	dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit * qb_fac;
+	dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit * qb_fac;
+	dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks * qb_fac;
+      }
+      else {
+        int qb_fac = DEV_QBSIZE / gq_rslt.GQR_RQUOTA.rq_bsize;
+	dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit / qb_fac;
+	dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit / qb_fac;
+	dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks / qb_fac;
+      }
 #endif /* LINUX_RQUOTAD_BUG */
       dqp->QS_FHARD = gq_rslt.GQR_RQUOTA.rq_fhardlimit;
       dqp->QS_FSOFT = gq_rslt.GQR_RQUOTA.rq_fsoftlimit;
       dqp->QS_FCUR = gq_rslt.GQR_RQUOTA.rq_curfiles;
-      dqp->QS_BTIME =
-	  tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_btimeleft;
-      dqp->QS_FTIME =
-	  tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_ftimeleft;
+
+      /* if time is given relative to actual time, add actual time */
+      /* Note: all systems except Linux return relative times */
+      if (gq_rslt.GQR_RQUOTA.rq_btimeleft == 0)
+        dqp->QS_BTIME = 0;
+      else if (gq_rslt.GQR_RQUOTA.rq_btimeleft + 10*365*24*60*60 < tv.tv_sec)
+        dqp->QS_BTIME = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_btimeleft;
+      else
+        dqp->QS_BTIME = gq_rslt.GQR_RQUOTA.rq_btimeleft;
+
+      if (gq_rslt.GQR_RQUOTA.rq_ftimeleft == 0)
+        dqp->QS_FTIME = 0;
+      else if (gq_rslt.GQR_RQUOTA.rq_ftimeleft + 10*365*24*60*60 < tv.tv_sec)
+        dqp->QS_FTIME = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_ftimeleft;
+      else
+        dqp->QS_FTIME = gq_rslt.GQR_RQUOTA.rq_ftimeleft;
 
       if(dqp->QS_BHARD==0 && dqp->QS_BSOFT==0 &&
          dqp->QS_FHARD==0 && dqp->QS_FSOFT==0) {
@@ -216,9 +237,10 @@ MODULE = Quota  PACKAGE = Quota
 PROTOTYPES: DISABLE
 
 void
-query(dev,uid=getuid())
+query(dev,uid=getuid(),isgrp=0)
 	char *	dev
 	int	uid
+	char    isgrp
 	PPCODE:
 	{
 	  struct dqblk dqblk;
@@ -245,6 +267,24 @@ query(dev,uid=getuid())
 	    }
 	  }
 	  else
+#endif
+#ifdef SOLARIS_VXFS
+          if(!strncmp(dev, "(VXFS)", 6)) {
+            struct vx_dqblk vxfs_dqb;
+            err = vx_quotactl(VX_GETQUOTA, dev+6, uid, CADR &vxfs_dqb);
+            if(!err) {
+              EXTEND(sp,8);
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_curblocks)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_bsoftlimit)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_bhardlimit)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_btimelimit)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_curfiles)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_fsoftlimit)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_fhardlimit)));
+              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_ftimelimit)));
+            }
+          }
+          else
 #endif
 #ifdef AFSQUOTA
 	  if(!strncmp(dev, "(AFS)", 5)) {
@@ -289,7 +329,7 @@ query(dev,uid=getuid())
 		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
 #else /* not USE_IOCTL */
 #ifdef Q_CTL_V3  /* Linux */
-	      err = quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, CADR &dqblk);
+	      err = quotactl(QCMD(Q_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, CADR &dqblk);
 #else /* not Q_CTL_V3 */
 #ifdef Q_CTL_V2
 #ifdef AIX
@@ -298,7 +338,7 @@ query(dev,uid=getuid())
 	      if (stat(dev, &st)) err = 1;
 	      else
 #endif
-	      err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
+	      err = quotactl(dev, QCMD(Q_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
 #else /* not Q_CTL_V2 */
 	      err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
 #endif /* not Q_CTL_V2 */
@@ -323,7 +363,7 @@ query(dev,uid=getuid())
         }
 
 int
-setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
+setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	char *	dev
 	int	uid
 	int	bs
@@ -331,6 +371,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 	int	fs
 	int	fh
 	int	timelimflag
+	char    isgrp
 	CODE:
 	{
 	  struct dqblk dqblk;
@@ -359,6 +400,20 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 	  }
 	  else
 	    /* if not xfs, than it's a classic IRIX efs file system */
+#endif
+#ifdef SOLARIS_VXFS
+          if(!strncmp(dev, "(VXFS)", 6)) {
+            struct vx_dqblk vxfs_dqb;
+
+            vxfs_dqb.dqb_bsoftlimit = bs;
+            vxfs_dqb.dqb_bhardlimit = bh;
+            vxfs_dqb.dqb_btimelimit = timelimflag;
+            vxfs_dqb.dqb_fsoftlimit = fs;
+            vxfs_dqb.dqb_fhardlimit = fh;
+            vxfs_dqb.dqb_ftimelimit = timelimflag;
+            RETVAL = vx_quotactl(VX_SETQUOTA, dev+6, uid, CADR &vxfs_dqb);
+        }
+        else
 #endif
 #ifdef AFSQUOTA
 	  if(!strncmp(dev, "(AFS)", 5)) {
@@ -389,10 +444,10 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
 #ifdef Q_CTL_V3  /* Linux */
 	    dqblk.QS_BCUR  = 0;
 	    dqblk.QS_FCUR  = 0;
-	    RETVAL = quotactl (QCMD(Q_SETQLIM,USRQUOTA), dev, uid, CADR &dqblk);
+	    RETVAL = quotactl (QCMD(Q_SETQLIM,(isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, CADR &dqblk);
 #else
 #ifdef Q_CTL_V2
-	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
+	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,(isgrp ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
 #else
 	    RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
 #endif
@@ -407,6 +462,12 @@ int
 sync(dev=NULL)
 	char *	dev
 	CODE:
+#ifdef SOLARIS_VXFS
+        if ((dev != NULL) && !strncmp(dev, "(VXFS)", 6)) {
+          RETVAL = vx_quotactl(VX_QSYNCALL, dev+6, 0, NULL);
+        }
+        else
+#endif
 #ifdef AFSQUOTA
 	if ((dev != NULL) && !strncmp(dev, "(AFS)", 5)) {
 	  if (!afs_check()) {
@@ -598,11 +659,19 @@ getmntent()
 	    errno = EBADF;
 #endif
 #else
+#ifdef OSF_QUOTA
+          char *fstype = getvfsbynumber((int)mntp->f_type);
+#endif
 	  if((mtab != NULL) && mtab_size) {
 	    EXTEND(sp,4);
 	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntfromname, strlen(mntp->f_mntfromname))));
 	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntonname, strlen(mntp->f_mntonname))));
-	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
+#ifdef OSF_QUOTA
+            if (fstype != (char *) -1)
+              PUSHs(sv_2mortal(newSVpv(fstype, strlen(fstype))));
+            else
+#endif
+              PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
 	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_flags)));
 	    mtab_size--;
 	    mntp++;
@@ -687,11 +756,11 @@ endmntent()
 char *
 getqcargtype()
 	CODE:
-	static char ret[20];
-#ifdef USE_IOCTL
+	static char ret[25];
+#if defined(USE_IOCTL) || defined(FREEBSD_QUOTA)
 	strcpy(ret, "mntpt");
 #else
-#ifdef AIX
+#if defined(AIX) || defined(OSF_QUOTA)
 	strcpy(ret, "any");
 #else
 #ifdef Q_CTL_V2
@@ -708,6 +777,9 @@ getqcargtype()
 #endif
 #ifdef AFSQUOTA
         strcat(ret, ",AFS");
+#endif
+#ifdef SOLARIS_VXFS
+        strcat(ret, ",VXFS");
 #endif
         RETVAL = ret;
 	OUTPUT:

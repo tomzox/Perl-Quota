@@ -1,5 +1,5 @@
 /*
- *   Configuration for HP-UX 9.0.x & HP-UX 10.10 & HP-UX 10.20
+ *   Configuration for HP-UX 9.0.x & HP-UX 10.10 & HP-UX 10.20 & HP-UX 11.00
  *
  *   For AFS support look at the end of this file
  */

@@ -1,7 +1,7 @@
-INSTALLATION INSTRUCTIONS
-=========================
+Installation Instructions
+-------------------------
 
-Usually all you should have to do is:
+Usually all you have to do is:
 
 	perl Makefile.PL
 	make
@@ -13,15 +13,15 @@ If that fails, regard the following instructions step by step.
 
 Options:
 
+-> Support for Solaris VxFS should be added automatically if the module
+   is installed. If not, #define or #undef SOLARIS_VXFS in config.h
+
+-> On a Linux NFS server you may want to fix your rpc.rquotad
+   See (2c) below for instructions.
+
 -> If you want support for AFS, you need the arla package and the Kerberos
    libraries to make the appropriate AFS calls (tested with AFS from Transarc).
-   See 2c below.
-
--> If you want support for group-quotas, use patch file group-quota.patch
-   (e.g. by typing: cd Quota-1.2.3; patch < group-quota.patch). Group
-   quotas do not work across RPC nor are they supported by all OSs;
-   That's why I did not include them to the main release. For an example
-   of use see contrib/test-group.pl
+   See (2d) below.
 
 
 1)  On Linux systems make sure you have configured your kernel with quota
@@ -29,7 +29,7 @@ Options:
     the SuSE Linux 6.0 distribution you'll find them in package ap::quota.
     If your distribution doesn't include the package you can get it from
     ftp://ftp.etter.ch/pub/linux/kernel/subsystems/quota/all.tar.gz
-    (also available at other Linux mirrors). See also 2b below.
+    (also available at other Linux mirrors). See also (2c) below.
 
 2)  Generate the hints file.
 
@@ -49,12 +49,28 @@ Options:
     don't have /usr/include/rpcsvc/rquota.h, include "include/rquota.h"
     instead. If you don't need RPC at all, just define NO_RPC.
 
-    On Linux you should keep #define LINUX_RQUOTAD_BUG as long as you
-    don't have a correctly working rpc.rquotad. To achieve that, simply
-    replace line 58 in rquota_server.c "*blksize = st.st_blksize;" with
-    "*blksize = 1024;" and recompile.
+ c) If you use Linux on a NFS server, you should keep
+    #define LINUX_RQUOTAD_BUG as long as you don't have a correctly working
+    rpc.rquotad. To achieve that, simply replace line 58 in rquota_server.c
+    "*blksize = st.st_blksize;" with "*blksize = 1024;". Then recompile
+    (you may need to add #include <asm/types.h> for __u32). While you're
+    at it you may also want to fix another bug in rpc.rquotad (although
+    in my module I have a workaround for it). After line 192 in
+    function getquotainfo() add after the call to memcpy():
+    {
+      struct timeval tv;
+      gettimeofday(&tv, NULL);
+      if (result.getquota_rslt_u.gqr_rquota.rq_btimeleft > tv.tv_sec)
+	result.getquota_rslt_u.gqr_rquota.rq_btimeleft -= tv.tv_sec;
+      else
+	result.getquota_rslt_u.gqr_rquota.rq_btimeleft = 0;
+      if (result.getquota_rslt_u.gqr_rquota.rq_ftimeleft > tv.tv_sec)
+	result.getquota_rslt_u.gqr_rquota.rq_ftimeleft -= tv.tv_sec;
+      else
+	result.getquota_rslt_u.gqr_rquota.rq_ftimeleft = 0;
+    }
 
- c) If you want support for AFS, you first need to install the Arla
+ d) If you want support for AFS, you first need to install the Arla
     package (for Linux be sure to install the static libs too). Then
     edit the hints file by inserting your paths to the Kerberos library
     and headers at the appropriate places. The Makefile.PL tries to detect
@@ -78,7 +94,8 @@ Options:
 7)  Before you start for another OS, type "make clean"
 
 Please mail me any changes in the hints files or Makefile.PL you had to
-apply to get the package to compile.
+apply to get the package to compile. Please remember to include in your
+mail the name of used OS and version numbers of OS (uname -rs) and module.
 
 Tom
 ---

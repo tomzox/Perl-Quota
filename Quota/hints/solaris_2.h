@@ -1,6 +1,5 @@
-
 /*
- *   Configuration for Solaris 2.4 & 2.5.x
+ *   Configuration for Solaris 2.4 & 2.5.x & 2.6 - NOT 2.7
  *   (this is for use with SYSV flavour, not /usr/bsd)
  *
  *   For AFS support look at the end of this file
@@ -26,7 +25,7 @@
 #define DEV_QBSIZE DEV_BSIZE
 #define CADR (caddr_t)
 
-/* Haven't found definition of quotactl-struc in any include,
+/* Haven't found definition of quotactl-struct in any include,
    just mentioned in man quotactl(7) */
 struct quotactl {
   int op;

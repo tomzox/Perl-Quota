@@ -52,11 +52,11 @@ print "\nQuery this fs with default uid (which is real uid) $>\n";
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev);
 if(defined($bc)) {
   my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
-  $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+  $bt = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $bt;
   ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
-  $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+  $ft = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $ft;
 
-  print "Your usage and limits are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  print "Your usage and limits are $bc ($bs,$bh,$bt) $fc ($fs,$fh,$ft)\n\n";
 }
 else {
   warn "Quota::query($dev): ",Quota::strerr,"\n\n";
@@ -78,11 +78,11 @@ else {
 ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::query($dev, $uid);
 if(defined($bc)) {
   my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
-  $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+  $bt = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $bt;
   ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
-  $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+  $ft = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $ft;
 
-  print "Usage and limits for $uid are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+  print "Usage and limits for $uid are $bc ($bs,$bh,$bt) $fc ($fs,$fh,$ft)\n\n";
 }
 else {
   warn "Quota::query($dev,$uid): ",Quota::strerr,"\n\n";
@@ -98,11 +98,11 @@ if($dev =~ m#^/#) {
   ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path);
   if(defined($bc)) {
     my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
-    $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+    $bt = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $bt;
     ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
-    $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+    $ft = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $ft;
 
-    print "Your Usage and limits are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+    print "Your Usage and limits are $bc ($bs,$bh,$bt) $fc ($fs,$fh,$ft)\n\n";
   }
   else {
     warn Quota::strerr,"\n\n";
@@ -112,11 +112,11 @@ if($dev =~ m#^/#) {
   ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path, $uid);
   if(defined($bc)) {
     my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
-    $bt = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $bt;
+    $bt = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $bt;
     ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($ft);
-    $ft = sprintf("%d:%d %d/%d/%d", $hour,$min,$mon,$mday,$year) if $ft;
+    $ft = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $ft;
 
-    print "Usage and limits for $uid are $bc ($bs/$bh/$bt) $fc ($fs/$fh/$ft)\n\n";
+    print "Usage and limits for $uid are $bc ($bs,$bh,$bt) $fc ($fs,$fh,$ft)\n\n";
   }
   else {
     warn Quota::strerr,"\n\n";

@@ -6,13 +6,13 @@ Quota.pm
 Quota.xs
 quotactl.c
 afsquota.c
+vxquotactl.c
 stdio_wrap.c
 README
 test.pl
-group-quota.patch
 hints/aix_4_1.h
-hints/dec_osf_3.h
-hints/hpux_9+10.h
+hints/dec_osf.h
+hints/hpux.h
 hints/irix_5.h
 hints/irix_6.h
 hints/linux.h
@@ -23,6 +23,7 @@ hints/bsdi_2.h
 hints/openbsd_2.h
 include/rquota.h
 include/afsquota.h
+include/vxquotactl.h
 include/stdio_wrap.h
 contrib/README
 contrib/test-group.pl
