@@ -9,6 +9,7 @@ afsquota.c
 stdio_wrap.c
 README
 test.pl
+group-quota.patch
 hints/aix_4_1.h
 hints/dec_osf_3.h
 hints/hpux_9+10.h
@@ -24,6 +25,7 @@ include/rquota.h
 include/afsquota.h
 include/stdio_wrap.h
 contrib/README
+contrib/test-group.pl
 contrib/report-quota
 contrib/quotamgmt/Author
 contrib/quotamgmt/config

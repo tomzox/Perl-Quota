@@ -11,19 +11,32 @@ Usually all you should have to do is:
 
 If that fails, regard the following instructions step by step.
 
-If you want support for AFS, you need the arla package (untested with
-other AFS implementations) and the Kerberos libraries. See 2c below.
+Options:
 
-1)  On Linux systems make sure you have compiled your kernel with quota
-    support. You also need the quota utilities and headers installed from
+-> If you want support for AFS, you need the arla package and the Kerberos
+   libraries to make the appropriate AFS calls (tested with AFS from Transarc).
+   See 2c below.
+
+-> If you want support for group-quotas, use patch file group-quota.patch
+   (e.g. by typing: cd Quota-1.2.3; patch < group-quota.patch). Group
+   quotas do not work across RPC nor are they supported by all OSs;
+   That's why I did not include them to the main release. For an example
+   of use see contrib/test-group.pl
+
+
+1)  On Linux systems make sure you have configured your kernel with quota
+    support. You also need the quota utilities and headers. E.g., with
+    the SuSE Linux 6.0 distribution you'll find them in package ap::quota.
+    If your distribution doesn't include the package you can get it from
     ftp://ftp.etter.ch/pub/linux/kernel/subsystems/quota/all.tar.gz
     (also available at other Linux mirrors). See also 2b below.
 
 2)  Generate the hints file.
 
- a) Should be done by Makefile.PL for all supported systems. If not and
-    there is a file below hints/ for your operating system, just create
-    a link named "config.h" to that file:  ln -s hints/my-os.h config.h
+ a) Should be done by Makefile.PL for all supported systems. If not, and
+    there is a file below hints/ for your operating system (maybe for a
+    previous release), just create a link named "config.h" to that file:
+    ln -s hints/my-os.h config.h
 
  b) Else, use hints/none.h to create a config.h of your own. Check which
     #includes you need in the online manuals. Contact me before you invest
@@ -33,42 +46,39 @@ other AFS implementations) and the Kerberos libraries. See 2c below.
     need only librpcsvc for the quota RPC mechanism. If you don't have
     this library or it lacks the quota routines, #define MY_XDR in
     config.h to include the routines provided with this module. If you
-    don't have /usr/include/rpcsvc/rquota.h, #include "include/rquota.h"
-    If you don't need RPC at all, just #define NO_RPC.
+    don't have /usr/include/rpcsvc/rquota.h, include "include/rquota.h"
+    instead. If you don't need RPC at all, just define NO_RPC.
 
     On Linux you should keep #define LINUX_RQUOTAD_BUG as long as you
-    don't have a correctly working rpc.rquotad. To achive that, simply
+    don't have a correctly working rpc.rquotad. To achieve that, simply
     replace line 58 in rquota_server.c "*blksize = st.st_blksize;" with
-    "*blksize = 1024;"
+    "*blksize = 1024;" and recompile.
 
- c) If you want support for AFS, you need first to install the arla
+ c) If you want support for AFS, you first need to install the Arla
     package (for Linux be sure to install the static libs too). Then
-    you need to to edit the hints file. Uncomment the line where AFSQUOTA
-    is defined and remove the # in front of all lines starting with MAKE
-    (those lines are automatically added to the Makefile in step #3).
-    Insert your paths to the Kerberos library and headers at the
-    appropriate places.
+    edit the hints file by inserting your paths to the Kerberos library
+    and headers at the appropriate places. The Makefile.PL tries to detect
+    automatically if AFS is preset on a system. If that fails, edit
+    the Makefile.PL to always define $hasafs (and drop me a mail).
 
 3)  Generate the Makefile: perl Makefile.PL
 
-4a) If Perl is already compiled and installed:  "make install"
-    will compile the module, create the dynamic loadable library
-    and copy all the stuff at the correct places in your perl tree.
-
-    If you don't want to install immediately, type only "make"
-    and "make install" maybe later.
-
-4b) Else, Configure.sh will probably offer to install Quota automatically.
+4)  Compile the module: make
 
 5)  Run "make test" to check if the module routines do work correctly.
-    (Since release 1.0 you can test the module without installing.
-    Remove "use blib" if you want to test the installed version.)
+    (Since release 1.0 you can test the module without installing)
 
-    contrib/ contains some additional examples, donated by users.
-    No guarantee from me that they do anything useful or don't format
-    your hard drive.
+    The contrib directory contains some additional examples, donated by
+    users. No guarantee from me that they do anything useful or don't
+    format your hard drive.
 
-6)  Before you start for another OS, type "make clean"
+6)  To install the module in your perl tree:  "make install"
+    You may need to su root before this step.
+
+7)  Before you start for another OS, type "make clean"
+
+Please mail me any changes in the hints files or Makefile.PL you had to
+apply to get the package to compile.
 
 Tom
 ---

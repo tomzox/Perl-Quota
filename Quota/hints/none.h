@@ -38,11 +38,12 @@
 #define Q_MUL * 2
 
 /* Specify what parameters the quotactl call expects (see man quotactl) */
+/* group quotas are supported only with BSD and Linux (see INSTALL) */
 
-/* BSD style: quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, &dqblk); */
+/* BSD style: quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, &dqblk); */
 /* #define Q_CTL_V2 */
 
-/* Linux special: quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, &dqblk); */
+/* Linux special: quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, &dqblk); */
 /* #define Q_CTL_V3 */
 
 /* Solaris uses ioctl() instead of quotactl() */
@@ -116,20 +117,18 @@
 /* #endif /**/
 
 
-/* If you have AFS (e.g. arla-0.13) uncomment the following lines
- * (i.e. remove the /**/ and the # in front of the MAKE lines too)
- * and insert your paths to the Kerberos libraries and header files
- * depending on your compiler you may have to change the compiler
+/* If you have AFS (e.g. arla-0.13) then modify the lines below
+ * and insert your paths to the Kerberos libraries and header files.
+ * Depending on your compiler you may have to change the compiler
  * and linker arguments. See man cc(1)
  */
-/* #define AFSQUOTA */
 
-/* MakeMaker parameters
-#MAKE AFSHOME=/products/security/athena
-#MAKE LD_RUN_PATH=$(AFSHOME)/lib
-#MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
-#MAKE INC=-I$(AFSHOME)/include
-#MAKE OBJ=afsquota.o
+/* MakeMaker parameters for AFS support - do not remove!
+MAKE AFSHOME=/products/security/athena
+MAKE LD_RUN_PATH=$(AFSHOME)/lib
+MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
+MAKE INC=-I$(AFSHOME)/include
+MAKE OBJ=afsquota.o
 ## in case your OS has problems with shared libraries, you can link the
 ## required objects in statically instead of using the LD_RUN_PATH and
 ## LDLOADLIBS above. You must not uncomment both options!

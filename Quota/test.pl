@@ -5,7 +5,7 @@ use Quota;
 
 while(1) {
   print "\nEnter path to get quota for (NFS possible; default '.'): ";
-  chop($path = <STDIN>);
+  chomp($path = <STDIN>);
   $path = "." unless $path =~ /\S/;
 
   while(1) {
@@ -68,7 +68,7 @@ else {
 
 {
   print "Enter a uid to get quota for: ";
-  chop($uid = <STDIN>);
+  chomp($uid = <STDIN>);
   unless($uid =~ /^\d{1,5}$/) {
     print "You have to enter a numerical uid in range 0..65535 here.\n";
     redo;
@@ -132,11 +132,11 @@ else {
 ##
 
 print "Enter path to set quota (empty to skip): ";
-chop($path = <STDIN>);
+chomp($path = <STDIN>);
 
 if($path =~ /\S/) {
   print "New quota limits bs,bh,fs,fh for $uid (empty to abort): ";
-  chop($in = <STDIN>);
+  chomp($in = <STDIN>);
   if($in =~ /\S/) {
     $dev = Quota::getqcarg($path) || die "$path: $!\n";
     unless(Quota::setqlim($dev, $uid, split(/\s*,\s*/, $in), 1)) {

@@ -2,6 +2,7 @@
  *   Configuration for SunOS 4.1.3
  *
  *   For AFS support look at the end of this file
+ *   For arla AFS an ANSI C compiler is required (SC1.0 acc or gcc)
  */
 
 /*   See hints/none.h for a complete list of options with explanations */
@@ -39,16 +40,9 @@
 #define QS_FTIME dqb_ftimelimit
 
 
-/*
- *  If you have AFS (arla) uncomment the following define and MAKE lines
- *  ANSI C compiler is required (SC1.0 acc or gcc)
- */
-
-/* #define AFSQUOTA */
-
-/* MakeMaker parameters - do not remove!
-#MAKE AFSHOME=/products/security/athena
-#MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -lrpcsvc
-#MAKE INC=-U__STDC__ -DSunOS4 -I$(AFSHOME)/include
-#MAKE OBJ=afsquota.o
+/* MakeMaker parameters for AFS support - do not remove!
+MAKE AFSHOME=/products/security/athena
+MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -lrpcsvc
+MAKE INC=-U__STDC__ -DSunOS4 -I$(AFSHOME)/include
+MAKE OBJ=afsquota.o
 */

@@ -1,5 +1,5 @@
 /*
- *   Configuration for Linux 2.0.22 and later
+ *   Configuration for Linux - kernel version 2.0.22 and later
  *
  *   For AFS support look at the end of this file
  */
@@ -9,8 +9,8 @@
 #include <sys/param.h>
 #include <sys/types.h>
 /* #include <linux/types.h> */
-/* asm/types.h is needed only on some systems (Debian 2.0, RedHat)
-   if you don't have it you should remove the following line */
+/* <asm/types.h> is required only on some distributions (Debian 2.0, RedHat)
+   if your's doesn't have it you can simply remove the following line */
 #include <asm/types.h>
 #include <linux/quota.h>
 #include <sys/syscall.h>
@@ -52,15 +52,11 @@
 #define LINUX_RQUOTAD_BUG
 
 
-/*
- *  If you have AFS (arla) uncomment the following define and MAKE lines
- */
-/* #define AFSQUOTA */
-
-/* MakeMaker parameters - do not remove!
-#MAKE AFSHOME=/products/security/athena
-#MAKE OBJ=afsquota.o afssys.o
+/* MakeMaker parameters for AFS support - do not remove!
+MAKE AFSHOME=/products/security/athena
+MAKE INC=-I$(AFSHOME)/include
+MAKE OBJ=afsquota.o afssys.o
 ## Linux does not record LD_RUN_PATH within DLOs, so we do without shlibs
 ## and extract the required object from the lib to link statically
-#MAKE ARXLIBOBJ=$(AFSHOME)/lib/libkafs.a afssys.o
+MAKE ARXLIBOBJ=$(AFSHOME)/lib/libkafs.a afssys.o
 */

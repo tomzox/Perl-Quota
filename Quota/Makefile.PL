@@ -7,7 +7,7 @@
 # Automagically choose the right configuration
 #
 chop($os = `uname -rs 2>/dev/null`);
-if($os =~ /^SunOS 4\.1/)   { $config='sunos_4_1.h'; }
+if   ($os =~ /^SunOS 4\.1/){ $config='sunos_4_1.h'; }
 elsif($os =~ /^SunOS 5/)   { $config='solaris_2.h'; }
 elsif($os =~ /^HP-UX (A\.09|B\.10)/) { $config='hpux_9+10.h'; }
 elsif($os =~ /^IRIX 5/)    { $config='irix_5.h'; }
@@ -19,33 +19,43 @@ elsif($os =~ /^AIX/)       { $config='aix_4_1.h'; }
 
 if (defined($config)) {
   printf "Using hints/$config for config.h\n";
-} else {
-  printf "No appropriate hints found for this OS: '$os'\n";
+}
+else {
+  warn "WARNING: No appropriate hints found for this OS: '$os - see INSTALL'\n";
 }
 
 
-# extract further parameters from the hints file
+# check whether the Andrew File System (AFS) is installed and running
 
-if (open(HINTS,"<hints/$config")) {
-  while(<HINTS>) {
-    if (/^MAKE\s+([^=]+)=(.*)/) { $hint{$1} = $2; }
+if ( -d "/afs" ) {
+  my ($afs) = `df /afs 2>/dev/null`;
+  if ($afs =~ /\nAFS|\(AFS/s) {
+    $hasafs = '-DAFSQUOTA';
+
+    # extract further parameters from the hints file
+    if (open(HINTS,"<hints/$config")) {
+      while(<HINTS>) {
+        if (/^MAKE\s+([^=]+)=(.*)/) { $hint{$1} = $2; }
+      }
+      close(HINTS);
+    }
+    else { warn "cannot open hints file $config: $!\n"; }
   }
-  close(HINTS);
 }
-else { warn "cannot open hints file $config: $!\n"; }
 
 #-----------------------------------------------------------------------------#
 
 use ExtUtils::MakeMaker;
 
 &WriteMakefile('NAME'         => 'Quota',
-	       'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) stdio_wrap.o '.
-	                         $extraobj .' '. $hint{'OBJ'},
-	       'INC'          => $hint{'INC'},
-	       'LIBS'         => [ '-lrpcsvc' ],
-	       'H'            => [ 'config.h' ],
-	       'VERSION_FROM' => 'Quota.pm',
-	       'clean'        => { FILES => 'config.h' },
+               'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) stdio_wrap.o '.
+                                 $extraobj .' '. $hint{'OBJ'},
+               'INC'          => $hint{'INC'},
+               'DEFINE'       => $hasafs,
+               'LIBS'         => [ '-lrpcsvc' ],
+               'H'            => [ 'config.h' ],
+               'VERSION_FROM' => 'Quota.pm',
+               'clean'        => { FILES => 'config.h' },
 );
 
 
@@ -59,7 +69,7 @@ sub MY::post_constants
 
     foreach (qw(AFSHOME EXTRALIBS LDLOADLIBS BSLOADLIBS LD_RUN_PATH)) {
       if (defined($hint{$_})) {
-	$ret .= "$_ = $hint{$_}\n";
+        $ret .= "$_ = $hint{$_}\n";
       }
     }
     if ($ret eq '') {
@@ -81,22 +91,22 @@ sub MY::postamble
     if(!defined $config) {
       $ret .= '
 config.h:
-	@echo "You need to make a config.h.  See the INSTALL document.";
+	@echo "You need to make a config.h.  See the file INSTALL.";
 	@false
-      '
+'
     }
     else {
       $ret .= "
 config.h:
 	rm -f config.h
 	ln -s hints/$config config.h
-      "
+"
     }
 
     # objects that must not be compiled with the CCCDL arguments
 
     if (defined $extraobj) {
-	($extrac = $extraobj) =~ s/\.o(\s+|$)/.c/g;
+        ($extrac = $extraobj) =~ s/\.o(\s+|$)/.c/g;
         $ret .= "\n$extraobj :\n\t".
                 '$(CC) -c $(INC) $(CCFLAGS) $(OPTIMIZE) '."$extrac\n\n";
     }
@@ -106,7 +116,7 @@ config.h:
 
     if (defined $hint{'ARXLIBOBJ'}) {
         $hint{'ARXLIBOBJ'} =~ /\s+/;
-	$ret .= "\n$' :\n\t\$(AR) x " . $hint{'ARXLIBOBJ'} ."\n\n";
+        $ret .= "\n$' :\n\t\$(AR) x " . $hint{'ARXLIBOBJ'} ."\n\n";
     }
 
     $ret;

@@ -1,0 +1,63 @@
+--- Quota.xs.nogrp	Fri Apr  2 16:06:50 1999
++++ Quota.xs	Fri Apr  2 16:09:27 1999
+@@ -216,9 +216,10 @@
+ PROTOTYPES: DISABLE
+ 
+ void
+-query(dev,uid=getuid())
++query(dev,uid=getuid(),isgrp=0)
+ 	char *	dev
+ 	int	uid
++	char    isgrp;
+ 	PPCODE:
+ 	{
+ 	  struct dqblk dqblk;
+@@ -289,7 +290,8 @@
+ 		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
+ #else /* not USE_IOCTL */
+ #ifdef Q_CTL_V3  /* Linux */
+-	      err = quotactl(QCMD(Q_GETQUOTA, USRQUOTA), dev, uid, CADR &dqblk);
++	      err = quotactl(isgrp ? QCMD(Q_GETQUOTA, GRPQUOTA) : QCMD(Q_GETQUOTA, USRQUOTA),
++	                     dev, uid, CADR &dqblk);
+ #else /* not Q_CTL_V3 */
+ #ifdef Q_CTL_V2
+ #ifdef AIX
+@@ -298,7 +300,7 @@
+ 	      if (stat(dev, &st)) err = 1;
+ 	      else
+ #endif
+-	      err = quotactl(dev, QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
++	      err = quotactl(dev, isgrp ? QCMD(Q_GETQUOTA, GRPQUOTA) : QCMD(Q_GETQUOTA, USRQUOTA), uid, CADR &dqblk);
+ #else /* not Q_CTL_V2 */
+ 	      err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
+ #endif /* not Q_CTL_V2 */
+@@ -323,7 +325,7 @@
+         }
+ 
+ int
+-setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0)
++setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
+ 	char *	dev
+ 	int	uid
+ 	int	bs
+@@ -331,6 +333,7 @@
+ 	int	fs
+ 	int	fh
+ 	int	timelimflag
++	char    isgrp;
+ 	CODE:
+ 	{
+ 	  struct dqblk dqblk;
+@@ -389,10 +392,10 @@
+ #ifdef Q_CTL_V3  /* Linux */
+ 	    dqblk.QS_BCUR  = 0;
+ 	    dqblk.QS_FCUR  = 0;
+-	    RETVAL = quotactl (QCMD(Q_SETQLIM,USRQUOTA), dev, uid, CADR &dqblk);
++	    RETVAL = quotactl (isgrp ? QCMD(Q_SETQUOTA, GRPQUOTA) : QCMD(Q_SETQUOTA, USRQUOTA), dev, uid, CADR &dqblk);
+ #else
+ #ifdef Q_CTL_V2
+-	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,USRQUOTA), uid, CADR &dqblk);
++	    RETVAL = quotactl (dev, isgrp ? QCMD(Q_SETQUOTA, GRPQUOTA) : QCMD(Q_SETQUOTA, USRQUOTA), uid, CADR &dqblk);
+ #else
+ 	    RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
+ #endif

@@ -44,13 +44,9 @@
 #define QS_FTIME dqb_itime
 
 
-/* Uncomment the following define and MAKE lines to enable AFS support */
-
-/* #define AFSQUOTA */
-
-/* MakeMaker parameters - do not remove!
-#MAKE AFSHOME=/products/security/athena
-#MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -lroken -lld -lrpcsvc
-#MAKE INC=-I$(AFSHOME)/include
-#MAKE OBJ=afsquota.o
+/* MakeMaker parameters for AFS support - do not remove!
+MAKE AFSHOME=/products/security/athena
+MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -lroken -lld -lrpcsvc
+MAKE INC=-I$(AFSHOME)/include
+MAKE OBJ=afsquota.o
 */

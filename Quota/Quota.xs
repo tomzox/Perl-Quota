@@ -18,7 +18,7 @@ extern "C" {
 #endif
 
 #ifdef AFSQUOTA
-#include "afsquota.h"
+#include "include/afsquota.h"
 #endif
 
 #if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
@@ -44,6 +44,50 @@ static aix_mtab_idx, aix_mtab_count;
  */
 
 #ifndef NO_RPC
+int
+callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
+  char *host;
+  xdrproc_t inproc, outproc;
+  char *in, *out;
+{
+  struct sockaddr_in remaddr;
+  struct hostent *hp;
+  enum clnt_stat clnt_stat;
+  struct timeval rep_time, timeout;
+  CLIENT *client = NULL;
+  int socket = RPC_ANYSOCK;
+
+  /*
+   *  Get IP address, port is determined via the remote portmap daemon
+   */
+  if ((hp = gethostbyname(host)) == NULL) return ((int) RPC_UNKNOWNHOST);
+  rep_time.tv_sec = 4;
+  rep_time.tv_usec = 0;
+  BCOPY((char *)hp->h_addr, (char *)&remaddr.sin_addr, hp->h_length);
+  remaddr.sin_family = AF_INET;
+  remaddr.sin_port = 0;
+
+  /*
+   *  Create client RPC handle
+   */
+  if ((client = (CLIENT *)clntudp_create(&remaddr, prognum,
+      versnum, rep_time, &socket)) == NULL) {
+	  return ((int) rpc_createerr.cf_stat);
+  }
+  client->cl_auth = authunix_create_default();
+
+  /*
+   *  Call remote server
+   */
+  timeout.tv_sec = 12;
+  timeout.tv_usec = 0;
+  clnt_stat = clnt_call(client, procnum,
+                        inproc, in, outproc, out, timeout);
+  if (client) clnt_destroy(client);
+
+  return ((int) clnt_stat);
+}
+
 int
 getnfsquota(hostp, fsnamep, uid, dqp)
   char *hostp, *fsnamep;
@@ -117,53 +161,10 @@ getnfsquota(hostp, fsnamep, uid, dqp)
   return (-1);
 }
 
-callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
-  char *host;
-  xdrproc_t inproc, outproc;
-  char *in, *out;
-{
-  struct sockaddr_in remaddr;
-  struct hostent *hp;
-  enum clnt_stat clnt_stat;
-  struct timeval rep_time, timeout;
-  CLIENT *client = NULL;
-  int socket = RPC_ANYSOCK;
-
-  /*
-   *  Get IP address, port is determined via the remote portmap daemon
-   */
-  if ((hp = gethostbyname(host)) == NULL) return ((int) RPC_UNKNOWNHOST);
-  rep_time.tv_sec = 4;
-  rep_time.tv_usec = 0;
-  BCOPY((char *)hp->h_addr, (char *)&remaddr.sin_addr, hp->h_length);
-  remaddr.sin_family = AF_INET;
-  remaddr.sin_port = 0;
-
-  /*
-   *  Create client RPC handle
-   */
-  if ((client = (CLIENT *)clntudp_create(&remaddr, prognum,
-      versnum, rep_time, &socket)) == NULL) {
-	  return ((int) rpc_createerr.cf_stat);
-  }
-  client->cl_auth = authunix_create_default();
-
-  /*
-   *  Call remote server
-   */
-  timeout.tv_sec = 12;
-  timeout.tv_usec = 0;
-  clnt_stat = clnt_call(client, procnum,
-                        inproc, in, outproc, out, timeout);
-  if (client) clnt_destroy(client);
-
-  return ((int) clnt_stat);
-}
-
 #ifdef MY_XDR
 
 struct xdr_discrim gq_des[2] = {
-  { (int)Q_OK, xdr_rquota },
+  { (int)Q_OK, (xdrproc_t)xdr_rquota },
   { 0, NULL }
 };
 
@@ -543,7 +544,7 @@ setmntent()
 	        aix_mtab_idx   = 0;
 		RETVAL = 0;
 	      }
-	      else {  /* error or size changed between calls */
+	      else {  /* error, or size changed between calls */
 		if (count == 0) errno = EINTR;
 	        RETVAL = -1;
 	      }
@@ -571,7 +572,8 @@ getmntent()
 #ifndef NO_OPEN_MNTTAB
 	  struct mntent *mntp;
 	  if(mtab != NULL) {
-	    if(mntp = getmntent(mtab)) {
+	    mntp = getmntent(mtab);
+	    if(mntp != NULL) {
 	      EXTEND(sp, 4);
 	      PUSHs(sv_2mortal(newSVpv(mntp->mnt_fsname, strlen(mntp->mnt_fsname))));
 	      PUSHs(sv_2mortal(newSVpv(mntp->mnt_dir, strlen(mntp->mnt_dir))));
@@ -673,14 +675,12 @@ endmntent()
 #else
 	    std_fclose (mtab);
 #endif
-#else
-	    /* if(mtab != NULL) free(mtab); */
-	    mtab = NULL;
+	    /* #else: if(mtab != NULL) free(mtab); */
 #endif
 #else /* AIX */
             free(mtab);
-	    mtab = NULL;
 #endif
+	    mtab = NULL;
 	  }
 	}
 
@@ -695,7 +695,7 @@ getqcargtype()
 	strcpy(ret, "any");
 #else
 #ifdef Q_CTL_V2
-	strcpy(ret, "path");
+	strcpy(ret, "qfile");
 #else
 #ifdef IRIX_XFS
 	strcpy(ret, "dev,XFS");

@@ -56,17 +56,10 @@ struct quotactl {
 #define QS_FTIME dqb_ftimelimit
 
 
-/*
- *  If you have AFS (arla) uncomment the following define and MAKE lines
- *  (If the SUNWspro compiler doesn't work try gcc or workshop)
- */
-
-/* #define AFSQUOTA */
-
-/* MakeMaker parameters - do not remove!
-#MAKE AFSHOME=/products/security/athena
-#MAKE LD_RUN_PATH=$(AFSHOME)/lib
-#MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
-#MAKE INC=-I$(AFSHOME)/include
-#MAKE OBJ=afsquota.o
+/* MakeMaker parameters for AFS support - do not remove!
+MAKE AFSHOME=/products/security/athena
+MAKE LD_RUN_PATH=$(AFSHOME)/lib
+MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
+MAKE INC=-I$(AFSHOME)/include
+MAKE OBJ=afsquota.o
 */

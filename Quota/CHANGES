@@ -1,8 +1,18 @@
+Changes in 1.2.3:  (April 1999)
+- added patch-file "group-quota.patch" that provides optional
+  support for group-quotas (on some OS versions and localhost only)
+- added auto-detection for AFS by Wolfgang Friebel
+- fixed include path for AFS in Quota.xs
+
+Changes in 1.2.2:  (December 1998)
+- fixed 2 problems in getqcarg()
+  thanks to py@ecst.csuchico.edu for pointing those out.
+
 Changes in 1.2:  (November 1998)
 - added support for AIX 4.1 (thanks to Wolfgang Friebel (friebel@ifh.de)
   for providing a development account)
 - added support for AFS (Andrew File System) by arla-0.13
-  on the following platforms: AIX, SunOS, Solaris, HP-UX, IRIX 6
+  on the following platforms: AIX, SunOS, Solaris, HP-UX, IRIX 6, Linux
   with much help from Wolfgang Friebel.
 
 Changes in 1.1.2:  (August 1998)
