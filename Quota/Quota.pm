@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.4.11';
+$VERSION = '1.5.0';
 
 bootstrap Quota;
 
@@ -126,6 +126,8 @@ Quota - Perl interface to file system quotas
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
     Quota::rpcquery($host, $path [,$uid]);
 
+    Quota::rpcpeer([$port [,$use_tcp [,timeout]]]);
+
     Quota::setqlim($dev, $uid, $block_soft, $block_hard,
 		   $inode_soft, $inode_hard [,$tlo [,isgrp]]);
 
@@ -235,6 +237,13 @@ This is equivalent to B<Quota::query("$host:$path",$uid)>, i.e.
 query quota for a given user on a given remote host via RPC.
 I<$path> is the path of any file or directory inside the wanted
 file system on the remote host.
+
+=item I<Quota::rpcpeer($port,$use_tcp,timeout)>
+
+Configure parameters for subsequent RPC queries; all parameters are
+optional.  By default the portmapper on the remote host is used
+(i.e. default port is 0, protocol is UDP)  The default timeout is
+4 seconds.
 
 =item I<$arg = Quota::getqcarg($path)>
 

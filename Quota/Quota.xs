@@ -37,11 +37,20 @@ static struct vmount *mtab = NULL;
 static aix_mtab_idx, aix_mtab_count;
 #endif
 
+#define RPC_DEFAULT_TIMEOUT 4000
+
+#ifndef NO_RPC
+static struct
+{
+  char            use_tcp;
+  unsigned short  port;
+  unsigned        timeout;
+} quota_rpc_cfg = {FALSE, 0, 4000};
+
 /*
  * fetch quotas from remote host
  */
 
-#ifndef NO_RPC
 int
 callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
   char *host;
@@ -52,33 +61,46 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
   struct hostent *hp;
   enum clnt_stat clnt_stat;
   struct timeval rep_time, timeout;
-  CLIENT *client = NULL;
+  CLIENT *client;
   int socket = RPC_ANYSOCK;
 
   /*
-   *  Get IP address, port is determined via the remote portmap daemon
+   *  Get IP address; by default the port is determined via remote
+   *  portmap daemon; different ports and protocols can be configured
    */
-  if ((hp = gethostbyname(host)) == NULL) return ((int) RPC_UNKNOWNHOST);
-  rep_time.tv_sec = 4;
-  rep_time.tv_usec = 0;
+  hp = gethostbyname(host);
+  if (hp == NULL)
+    return ((int) RPC_UNKNOWNHOST);
+
+  rep_time.tv_sec = quota_rpc_cfg.timeout / 1000;
+  rep_time.tv_usec = (quota_rpc_cfg.timeout % 1000) * 1000;
   memcpy((char *)&remaddr.sin_addr, (char *)hp->h_addr, hp->h_length);
   remaddr.sin_family = AF_INET;
-  remaddr.sin_port = 0;
+  remaddr.sin_port = htons(quota_rpc_cfg.port);
 
   /*
    *  Create client RPC handle
    */
-  if ((client = (CLIENT *)clntudp_create(&remaddr, prognum,
-      versnum, rep_time, &socket)) == NULL) {
-	  return ((int) rpc_createerr.cf_stat);
+  client = NULL;
+  if (!quota_rpc_cfg.use_tcp) {
+    client = (CLIENT *)clntudp_create(&remaddr, prognum, 
+                                      versnum, rep_time, &socket);
   }
+  else {
+    client = (CLIENT *)clnttcp_create(&remaddr, prognum, 
+                                      versnum, &socket, 0, 0);
+  }
+
+  if (client == NULL)
+    return ((int) rpc_createerr.cf_stat);
+
   client->cl_auth = authunix_create_default();
 
   /*
    *  Call remote server
    */
-  timeout.tv_sec = 12;
-  timeout.tv_usec = 0;
+  timeout.tv_sec = quota_rpc_cfg.timeout / 1000;
+  timeout.tv_usec = (quota_rpc_cfg.timeout % 1000) * 1000;
   clnt_stat = clnt_call(client, procnum,
                         inproc, in, outproc, out, timeout);
   if (client) clnt_destroy(client);
@@ -587,6 +609,20 @@ rpcquery(host,path,uid=getuid())
 	  }
 #else
 	  errno = ENOSYS;
+#endif
+	}
+
+void
+rpcpeer(port=0,use_tcp=FALSE,timeout=RPC_DEFAULT_TIMEOUT)
+	unsigned port
+	unsigned use_tcp 
+	unsigned timeout 
+	PPCODE:
+	{
+#ifndef NO_RPC
+	  quota_rpc_cfg.port = port;
+	  quota_rpc_cfg.use_tcp = use_tcp;
+	  quota_rpc_cfg.timeout = timeout;
 #endif
 	}
 

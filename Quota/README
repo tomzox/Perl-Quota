@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.4.11
-Date:      August 2004
+Version:   1.5.0
+Date:      November 2004
 DSLI-code: Rdcf
            - stable release
            - support by developer
@@ -49,6 +49,8 @@ SYNOPSIS
          ($block_curr, $block_soft, $block_hard, $block_timelimit,
           $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
          Quota::rpcquery($host, $path [,$uid]);
+
+         Quota::rpcpeer([$port [,$use_tcp [,timeout]]]);
 
          Quota::setqlim($dev, $uid, $block_soft, $block_hard,
                         $inode_soft, $inode_hard [,$tlo [,isgrp]]);
@@ -165,6 +167,12 @@ DESCRIPTION
          host via RPC.  $path is the path of any file or
          directory inside the wanted file system on the remote
          host.
+
+     Quota::rpcpeer($port,$use_tcp,timeout)
+         Configure parameters for subsequent RPC queries; all
+         parameters are optional.  By default the portmapper on
+         the remote host is used (i.e. default port is 0,
+         protocol is UDP)  The default timeout is 4 seconds.
 
      $arg = Quota::getqcarg($path)
          Get the required $dev argument for Quota::query and
