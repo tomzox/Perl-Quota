@@ -12,7 +12,8 @@
 /* <asm/types.h> is required only on some distributions (Debian 2.0, RedHat)
    if your's doesn't have it you can simply remove the following line */
 #include <asm/types.h>
-#include <linux/quota.h>
+/*#include <linux/quota.h>*/  /* is incompatible on RedHat7.1, use sys/quota.h instead */
+#include <sys/quota.h>
 #include <sys/syscall.h>
 #include <mntent.h>
 

@@ -1,3 +1,16 @@
+Changes in 1.3.3 (May 2001)
+- bugfix Quota::query, branch NO_RPC: forgot to set error flag, arbitrary
+  results were returned; Pointed out by Mahlon Smith <reich@internetcds.com>
+- fixed declaration of GQR_* macros for RPC in hints/bsd.h
+  RPC still untested for BSD though
+- fixed OpenBSD2.7 fix from last release: replaced macro OpenBSD2_7 with
+  __OpenBSD__ because the former is not defined in 2.8 anymore.
+  Reported by Lou Hevly (lou@visca.com)
+- fixed hints/linux.h for RedHat 7.1: use sys/quota.h instead of linux/quota.h
+  because the former has an incompatible definition of struct dqblk.
+  Reported by Waldemar Krotkiewicz (wk@brenet.de), Andy Choi (andy@ensim.com)
+  and Brian Johnson (brian@dev.brianj.com).
+
 Changes in 1.3.2 (February 2001)
 - please note my new email address: tomzo@nefkom.net
 - fixed AFS detection in Makefile.PL for Perl 5.6

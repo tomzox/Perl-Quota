@@ -54,8 +54,8 @@
 
 #define NO_MNTENT
  
-#define GQR_STATUS gqr_status
-#define GQR_RQUOTA gqr_rquota
+#define GQR_STATUS status
+#define GQR_RQUOTA getquota_rslt_u.gqr_rquota
 
 #define QS_BHARD dqb_bhardlimit
 #define QS_BSOFT dqb_bsoftlimit

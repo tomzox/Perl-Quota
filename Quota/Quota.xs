@@ -318,6 +318,7 @@ query(dev,uid=getuid(),isgrp=0)
 	      *p = ':';
 #else /* NO_RPC */
 	      errno = ENOSYS;
+              err = -1;
 #endif /* NO_RPC */
             }
 	    else {
@@ -671,7 +672,7 @@ getmntent()
               PUSHs(sv_2mortal(newSVpv(fstype, strlen(fstype))));
             else
 #endif
-#ifndef OpenBSD2_7
+#ifndef __OpenBSD__
               PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
 #else
               /* OpenBSD struct statfs lacks the f_type member (starting with release 2.7) */
