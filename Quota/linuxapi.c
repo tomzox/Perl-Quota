@@ -117,7 +117,7 @@ static void linuxquota_get_api( void )
 #ifndef LINUX_API_VERSION
     struct stat st;
 
-    if (stat("/proc/sys/fs/quota", &st) != 0) {
+    if (stat("/proc/sys/fs/quota", &st) == 0) {
         kernel_iface = IFACE_GENERIC;
     }
     else {

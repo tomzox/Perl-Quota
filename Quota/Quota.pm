@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.4.7';
+$VERSION = '1.4.8';
 
 bootstrap Quota;
 
