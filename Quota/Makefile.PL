@@ -9,14 +9,16 @@
 chop($os = `uname -rs 2>/dev/null`);
 if   ($os =~ /^SunOS 4\.1/){ $config='sunos_4_1.h'; }
 elsif($os =~ /^SunOS 5/)   { $config='solaris_2.h'; }
-elsif($os =~ /^HP-UX (A\.09|B\.10|C\.11)/) { $config='hpux.h'; }
+elsif($os =~ /^HP-UX (A\.09|B\.10|[BC]\.11)/) { $config='hpux.h'; }
 elsif($os =~ /^IRIX 5/)    { $config='irix_5.h'; }
 elsif($os =~ /^IRIX\d* 6/) { $config='irix_6.h'; }
 elsif($os =~ /^OSF1/)      { $config='dec_osf.h'; }
-elsif($os =~ /^BSD\/OS 2/) { $config='bsdi_2.h'; }
-elsif($os =~ /^FreeBSD/)   { $config='freebsd.h'; }
 elsif($os =~ /^Linux 2/)   { $config='linux.h'; $extraobj='quotactl.o'; }
 elsif($os =~ /^AIX/)       { $config='aix_4_1.h'; }
+elsif($os =~ /^BSD\/OS 2/ ||
+      $os =~ /^FreeBSD/   ||
+      $os =~ /^NetBSD/    ||
+      $os =~ /^OpenBSD/)   { $config='bsd.h'; }
 
 if (defined($config)) {
   print "Using hints/$config for config.h\n";

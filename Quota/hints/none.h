@@ -32,10 +32,10 @@
 /* Needed for definition of type FILE for set/getmntent(3) routines */
 #include <stdio.h>
 
-/* These values depend on the blocksize of your filesystem.
-   Scale it the way, that quota values are in kB */
-#define Q_DIV / 2
-#define Q_MUL * 2
+/* These factors depend on the blocksize of your filesystem.
+   Scale it in a way that quota values are in kB */
+#define Q_DIV(X) ((X) / 2)
+#define Q_MUL(X) ((X) * 2)
 
 /* Specify what parameters the quotactl call expects (see man quotactl) */
 /* group quotas are supported only with BSD and Linux (see INSTALL) */

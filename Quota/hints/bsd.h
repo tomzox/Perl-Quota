@@ -1,9 +1,15 @@
 /*
- *   Configuration example for BSDI
+ *   Configuration example for BSD-based systems -
+ *   BSDi, FreeBSD, NetBSD, OpenBSD
  *
- *   Ported to BSDI  by Jim Hribnak (hribnak@nucleus.com) Aug 28 1997
+ *   Ported to BSDI 2.0 by Jim Hribnak (hribnak@nucleus.com) Aug 28 1997
  *   with the help of the original author Tom Zoerner 
  *   (Tom.Zoerner@informatik.uni-erlangen.de)
+ *   OpenBSD 2.0 mods provided by James Shelburne (reilly@eramp.net)
+ *   FreeBSD mods provided by Kurt Jaeger <pi@complx.LF.net>
+ *           and Jon Schewe <schewe@tcfreenet.org>
+ *   NetBSD mods and merge of *BSD-related hints provided by
+ *           Jaromir Dolecek <jdolecek@NetBSD.org>
  */
 
 /*
@@ -22,19 +28,28 @@
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <rpc/svc.h>
+
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#include <rpcsvc/rquota.h>
+#else /* BSDi */
 #include "include/rquota.h"
+#endif
 
 #include <sys/socket.h>
 #include <netdb.h>
 
 #include <stdio.h>
 
-#define Q_DIV / 2
-#define Q_MUL * 2
+#define Q_DIV(X) ((X) / 2)
+#define Q_MUL(X) ((X) * 2)
 #define DEV_QBSIZE DEV_BSIZE
 #define Q_CTL_V2
 #define Q_SETQLIM Q_SETQUOTA
 #define CADR (caddr_t)
+
+#if defined(__FreeBSD__) || defined(__NetBSD__)
+#define QCARG_MNTPT
+#endif
 
 #define NO_RPC
 

@@ -347,9 +347,9 @@ query(dev,uid=getuid(),isgrp=0)
 	    }
 	    if(!err) {
 	      EXTEND(sp, 8);
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
+	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
+	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
+	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
 	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
 	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
 	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
@@ -405,8 +405,8 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
           if(!strncmp(dev, "(VXFS)", 6)) {
             struct vx_dqblk vxfs_dqb;
 
-            vxfs_dqb.dqb_bsoftlimit = bs;
-            vxfs_dqb.dqb_bhardlimit = bh;
+            vxfs_dqb.dqb_bsoftlimit = Q_MUL(bs);
+            vxfs_dqb.dqb_bhardlimit = Q_MUL(bh);
             vxfs_dqb.dqb_btimelimit = timelimflag;
             vxfs_dqb.dqb_fsoftlimit = fs;
             vxfs_dqb.dqb_fhardlimit = fh;
@@ -427,8 +427,8 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	  else
 #endif
 	  {
-	    dqblk.QS_BSOFT = bs Q_MUL;
-	    dqblk.QS_BHARD = bh Q_MUL;
+	    dqblk.QS_BSOFT = Q_MUL(bs);
+	    dqblk.QS_BHARD = Q_MUL(bh);
 	    dqblk.QS_BTIME = timelimflag;
 	    dqblk.QS_FSOFT = fs;
 	    dqblk.QS_FHARD = fh;
@@ -552,9 +552,9 @@ rpcquery(host,path,uid=getuid())
 	  struct dqblk dqblk;
 	  if(getnfsquota(host, path, uid, &dqblk) == 0) {
 	    EXTEND(sp, 8);
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BCUR  Q_DIV)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BSOFT Q_DIV)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BHARD Q_DIV)));
+	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
+	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
+	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
 	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
 
 	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
@@ -757,7 +757,7 @@ char *
 getqcargtype()
 	CODE:
 	static char ret[25];
-#if defined(USE_IOCTL) || defined(FREEBSD_QUOTA)
+#if defined(USE_IOCTL) || defined(QCARG_MNTPT)
 	strcpy(ret, "mntpt");
 #else
 #if defined(AIX) || defined(OSF_QUOTA)

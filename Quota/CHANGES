@@ -1,3 +1,12 @@
+Changes in 1.3.1 (October 2000)
+- added support for NetBSD, merged hints for BSD-based systems
+  by Jaromir Dolecek <jdolecek@NetBSD.org>
+- fixed include file name for vxquotactl.h
+  changed quota block factors Q_DIV/Q_MUL from 1 to 2 for Veritas fs
+  Thanks to David Lee (T.D.Lee@durham.ac.uk)
+- added automatic recognition of HPUX B.11 in Makefile.PL
+  by Albert Chin (china@thewrittenword.com)
+
 Changes in 1.3:  (January 2000)
 - bugfix/enhanced support for OSF/1 and Digital Unix:
   getqcarg used wrong path to quotas file and

@@ -24,7 +24,7 @@
  * Mike Gerdts, gerdts@cae.wisc.edu
  */
 
-#include "include/vx_quotactl.h"
+#include "include/vxquotactl.h"
 #include <fcntl.h>
 #include <sys/types.h>
 #include <sys/vfs.h>

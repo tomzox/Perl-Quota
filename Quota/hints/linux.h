@@ -26,8 +26,8 @@
 #include <strings.h>
 #include <stdio.h>
 
-#define Q_DIV
-#define Q_MUL
+#define Q_DIV(X) (X)
+#define Q_MUL(X) (X)
 #define DEV_QBSIZE 1024
 
 #define Q_CTL_V3

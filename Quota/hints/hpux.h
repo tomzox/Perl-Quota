@@ -19,8 +19,8 @@
 
 #include <stdio.h>
 
-#define Q_DIV
-#define Q_MUL
+#define Q_DIV(X) (X)
+#define Q_MUL(X) (X)
 #define DEV_QBSIZE DEV_BSIZE
 #define CADR (caddr_t)
 

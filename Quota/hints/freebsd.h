@@ -29,8 +29,8 @@
 
 #include <stdio.h>
 
-#define Q_DIV / 2
-#define Q_MUL * 2
+#define Q_DIV(X) ((X) / 2)
+#define Q_MUL(X) ((X) * 2)
 #define DEV_QBSIZE DEV_BSIZE
 #define Q_CTL_V2
 #define Q_SETQLIM Q_SETQUOTA
