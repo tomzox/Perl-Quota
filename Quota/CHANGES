@@ -1,3 +1,7 @@
+Changes in 1.4.6 (August 2002)
+- changed the test script to exit if STDIN is not a terminal device.
+  This is an interactive script which cannot be run by CPANPLUS.
+
 Changes in 1.4.5 (July 2002)
 - replaced use of macro BCOPY with libc function memcpy() because of build
   problems on Solaris 2.8 (bcopy is depreciated now anyways)

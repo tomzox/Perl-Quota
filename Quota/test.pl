@@ -3,6 +3,11 @@
 use blib;
 use Quota;
 
+if (! -t) {
+   print STDERR "\nThis is an interactive test script - input must be a tty\nExiting now.\n";
+   exit;
+}
+
 while(1) {
   print "\nEnter path to get quota for (NFS possible; default '.'): ";
   chomp($path = <STDIN>);
