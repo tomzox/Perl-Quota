@@ -44,8 +44,10 @@
 #define QS_BTIME dqb_btimelimit
 #define QS_FTIME dqb_ftimelimit
 
-/* optional: for support of XFS file systems - comment out if not needed */
-#define IRIX_XFS
+/* optional: for support of SGI XFS file systems - comment out if not needed */
+#define SGI_XFS
+#define QX_DIV(X) (X)
+#define QX_MUL(X) (X)
 
 
 /* MakeMaker parameters for AFS support - do not remove!

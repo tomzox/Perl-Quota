@@ -52,6 +52,12 @@
 
 #define LINUX_RQUOTAD_BUG
 
+/* optional: for support of SGI XFS file systems - comment out if not needed */
+#define SGI_XFS
+#define QX_DIV(X) ((X) >> 1)
+#define QX_MUL(X) ((X) << 1)
+#include "include/quotaio_xfs.h"
+
 
 /* MakeMaker parameters for AFS support - do not remove!
 MAKE AFSHOME=/products/security/athena

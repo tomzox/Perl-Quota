@@ -24,6 +24,7 @@ include/rquota.h
 include/afsquota.h
 include/vxquotactl.h
 include/stdio_wrap.h
+include/quotaio_xfs.h
 contrib/README
 contrib/test-group.pl
 contrib/report-quota

@@ -250,15 +250,19 @@ query(dev,uid=getuid(),isgrp=0)
 	  struct quotactl qp;
 	  int fd = -1;
 #endif
-#ifdef IRIX_XFS
+#ifdef SGI_XFS
 	  if(!strncmp(dev, "(XFS)", 5)) {
 	    fs_disk_quota_t xfs_dqblk;
+#ifndef linux
 	    err = quotactl(Q_XGETQUOTA, dev+5, uid, CADR &xfs_dqblk);
+#else
+	    err = quotactl(QCMD(Q_XGETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev+5, uid, CADR &xfs_dqblk);
+#endif
 	    if(!err) {
 	      EXTEND(sp, 8);
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_bcount)));
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_softlimit)));
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_blk_hardlimit)));
+	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_bcount))));
+	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_softlimit))));
+	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_hardlimit))));
 	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_btimer)));
 	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_icount)));
 	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_softlimit)));
@@ -385,19 +389,23 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	  qp.addr = (char *)&dqblk;
 #endif
 	  if(timelimflag != 0) timelimflag = 1;
-#ifdef IRIX_XFS
+#ifdef SGI_XFS
 	  if(!strncmp(dev, "(XFS)", 5)) {
 	    fs_disk_quota_t xfs_dqblk;
 
-	    xfs_dqblk.d_blk_softlimit = bs;
-	    xfs_dqblk.d_blk_hardlimit = bh;
+	    xfs_dqblk.d_blk_softlimit = QX_MUL(bs);
+	    xfs_dqblk.d_blk_hardlimit = QX_MUL(bh);
 	    xfs_dqblk.d_btimer        = timelimflag;
 	    xfs_dqblk.d_ino_softlimit = fs;
 	    xfs_dqblk.d_ino_hardlimit = fh;
 	    xfs_dqblk.d_itimer        = timelimflag;
 	    xfs_dqblk.d_fieldmask     = FS_DQ_LIMIT_MASK;
 	    xfs_dqblk.d_flags         = XFS_USER_QUOTA;
+#ifndef linux
 	    RETVAL = quotactl(Q_XSETQLIM, dev+5, uid, CADR &xfs_dqblk);
+#else
+	    RETVAL = quotactl(QCMD(Q_XSETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)), dev+5, uid, CADR &xfs_dqblk);
+#endif
 	  }
 	  else
 	    /* if not xfs, than it's a classic IRIX efs file system */
@@ -504,6 +512,24 @@ sync(dev=NULL)
 #else
         {
 #ifdef Q_CTL_V3  /* Linux */
+#ifdef SGI_XFS
+          if ((dev != NULL) && (!strncmp(dev, "(XFS)", 5))) {
+            struct fs_quota_stat fsq_stat;
+
+            if (!quotactl(QCMD(Q_XGETQSTAT, USRQUOTA), dev+5, 0, CADR &fsq_stat)) {
+              if (fsq_stat.qs_flags & (XFS_QUOTA_UDQ_ACCT | XFS_QUOTA_GDQ_ACCT))
+                RETVAL = 0;
+              else if ( (strcmp(dev+5, "/") == 0) &&
+                        (((fsq_stat.qs_flags & 0xff00) >> 8) & (XFS_QUOTA_UDQ_ACCT | XFS_QUOTA_GDQ_ACCT)) )
+                RETVAL = 0;
+              else {
+                errno = ENOENT;
+                RETVAL = -1;
+              }
+            }
+          }
+          else
+#endif
 	  RETVAL = quotactl(QCMD(Q_SYNC, USRQUOTA), dev, 0, NULL);
 #else
 #ifdef Q_CTL_V2
@@ -517,7 +543,7 @@ sync(dev=NULL)
 #endif
 	  RETVAL = quotactl(dev, QCMD(Q_SYNC, USRQUOTA), 0, NULL);
 #else
-#ifdef IRIX_XFS
+#ifdef SGI_XFS
 #define XFS_UQUOTA (XFS_QUOTA_UDQ_ACCT|XFS_QUOTA_UDQ_ENFD)
 	  /* Q_SYNC is not supported on XFS filesystems, so emulate it */
 	  if ((dev != NULL) && (!strncmp(dev, "(XFS)", 5))) {
@@ -772,7 +798,7 @@ getqcargtype()
 #ifdef Q_CTL_V2
 	strcpy(ret, "qfile");
 #else
-#ifdef IRIX_XFS
+#ifdef SGI_XFS
 	strcpy(ret, "dev,XFS");
 #else
 /* this branch applies to Q_CTL_V3 (Linux) too */

@@ -1,3 +1,7 @@
+Changes in 1.3.4 (May 2001)
+- added support for SGI XFS on Linux.  Thanks to Brian Johnson
+  (brian@dev.brianj.com) for providing a development account.
+
 Changes in 1.3.3 (May 2001)
 - bugfix Quota::query, branch NO_RPC: forgot to set error flag, arbitrary
   results were returned; Pointed out by Mahlon Smith <reich@internetcds.com>
