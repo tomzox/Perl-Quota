@@ -18,6 +18,7 @@
 #include <netdb.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #define USE_IOCTL
 #define Q_DIV(X) ((X) / 2)

@@ -32,6 +32,9 @@
 /* Needed for definition of type FILE for set/getmntent(3) routines */
 #include <stdio.h>
 
+/* Needed (at least) for memcpy */
+#include <string.h>
+
 /* These factors depend on the blocksize of your filesystem.
    Scale it in a way that quota values are in kB */
 #define Q_DIV(X) ((X) / 2)

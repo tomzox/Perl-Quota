@@ -23,7 +23,7 @@
 #include <sys/socket.h>
 #include <netdb.h>
 
-#include <strings.h>
+#include <string.h>
 #include <stdio.h>
 
 /* Heuristic check for the new Quota API V2 */

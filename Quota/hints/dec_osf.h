@@ -18,6 +18,7 @@
 #include <netdb.h>
 
 #include <stdio.h>
+#include <string.h>
 
 #define Q_DIV(X) (X)
 #define Q_MUL(X) (X)

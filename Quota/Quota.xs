@@ -25,12 +25,6 @@ extern "C" {
 #include "include/vxquotactl.h"
 #endif
 
-#if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
-#define BCOPY my_bcopy
-#else
-#define BCOPY bcopy
-#endif
-
 #ifndef AIX
 #ifndef NO_MNTENT
 FILE *mtab = NULL;
@@ -67,7 +61,7 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
   if ((hp = gethostbyname(host)) == NULL) return ((int) RPC_UNKNOWNHOST);
   rep_time.tv_sec = 4;
   rep_time.tv_usec = 0;
-  BCOPY((char *)hp->h_addr, (char *)&remaddr.sin_addr, hp->h_length);
+  memcpy((char *)&remaddr.sin_addr, (char *)hp->h_addr, hp->h_length);
   remaddr.sin_family = AF_INET;
   remaddr.sin_port = 0;
 
