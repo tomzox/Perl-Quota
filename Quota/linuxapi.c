@@ -6,24 +6,18 @@
 #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include "myconfig.h"
 
 /* API v1 command definitions */
-#define Q1_GETQUOTA  0x0300
-#define Q1_SETQUOTA  0x0400
+#define Q_V1_GETQUOTA  0x0300
+#define Q_V1_SETQUOTA  0x0400
+#define Q_V1_GETSTATS  0x0800
 /* API v2 command definitions */
-#define Q2_GETQUOTA  0x0D00
-#define Q2_SETQUOTA  0x0E00
-#define Q2_GETSTATS  0x1100
-
-
-#if defined(INITQFNAMES) && (Q_GETQUOTA==0x0300) && (Q_GETSTATS==0x0800)
-/* this is an early version of the quota patch which did not have the
-** version element in the stats struct. Hence it's impossible to detect
-** at runtime with a sufficient degree of certainity. */
-# define LINUX_API_V2_ONLY
-#endif
+#define Q_V2_GETQUOTA  0x0D00
+#define Q_V2_SETQUOTA  0x0E00
+#define Q_V2_GETSTATS  0x1100
 
 
 /*
@@ -43,6 +37,7 @@ struct dqstats_v2 {
   u_int32_t syncs;
   u_int32_t version;
 };
+
 
 struct dqblk_v2 {
   unsigned int dqb_ihardlimit;
@@ -65,17 +60,18 @@ static int linux_api = 0;
 
 /*
 **  Check kernel quota version
-**  Derived from quota-tools 3.01 by Jan Kara <jack@suse.cz>
+**  Taken from quota-tools 3.01 by Jan Kara <jack@suse.cz>
 */
 
+#define QSTAT_FILE "/proc/fs/quota"
 #define KERN_KNOWN_QUOTA_VERSION (6*10000 + 5*100 + 0)
 
+#ifdef xxxxx
 static void linuxquota_get_api( void )
 {
-#ifndef LINUX_API_V2_ONLY
   struct dqstats_v2 stats;
 
-  if (quotactl(QCMD(Q2_GETSTATS, 0), NULL, 0, (void *)&stats) == 0)
+  if (quotactl(QCMD(Q_V2_GETSTATS, 0), NULL, 0, (void *)&stats) == 0)
   {
     if (stats.version == KERN_KNOWN_QUOTA_VERSION)
       linux_api = 2;
@@ -89,11 +85,85 @@ static void linuxquota_get_api( void )
     else
       linux_api = 3;
   }
+}
+#endif
 
-#else /* defined LINUX_API_V2_ONLY */
-  linux_api = 2;
+static void linuxquota_get_api( void )
+{
+#ifndef LINUX_API_VERSION
+  struct dqstats_v2 stats;
+  struct dqstats_v2 v2_stats;
+  FILE *f;
+  int ret = 0;
+  struct stat st;
+
+  linux_api = 0;
+
+  if ((f = fopen(QSTAT_FILE, "r")))
+  {
+    if (fscanf(f, "Version %u", &stats.version) != 1)
+    { /* failed to parse stats -> set error code */
+      stats.version = KERN_KNOWN_QUOTA_VERSION + 1;
+    }
+    fclose(f);
+  }
+  else if (quotactl(QCMD(Q_V2_GETSTATS, 0), NULL, 0, (void *)&v2_stats) >= 0)
+  {
+    stats.version = v2_stats.version;
+  }
+  else
+  {
+    if (errno == ENOSYS || errno == ENOTSUP)
+    { /* Quota not compiled? */
+       linux_api = 3;
+    }
+    else if (errno == EINVAL || errno == EFAULT || errno == EPERM)
+    { /* Old quota compiled? */
+      /* RedHat 7.1 (2.4.2-2) newquota check 
+       * Q_V2_GETSTATS in it's old place, Q_GETQUOTA in the new place
+       * (they haven't moved Q_GETSTATS to its new value) */
+      int err_stat = 0;
+      int err_quota = 0;
+      char tmp[1024];
+
+      if (quotactl(QCMD(Q_V1_GETSTATS, 0), NULL, 0, tmp))
+        err_stat = errno;
+      if (quotactl(QCMD(Q_V1_GETQUOTA, 0), "/dev/null", 0, tmp))
+        err_quota = errno;
+
+      /* On a RedHat 2.4.2-2 	we expect 0, EINVAL
+       * On a 2.4.x 		we expect 0, ENOENT
+       * On a 2.4.x-ac	we wont get here */
+      if (err_stat == 0 && err_quota == EINVAL)
+        linux_api = 2;
+      else
+        linux_api = 1;
+    }
+    else
+      linux_api = 3;
+  }
+
+  if (linux_api == 0)
+  {
+    /* We might do some more generic checks in future but this should be enough for now */
+    if (stats.version > KERN_KNOWN_QUOTA_VERSION)
+    { /* Newer kernel than we know */
+      linux_api = 3;
+    }
+    else if (stats.version <= 6*10000+4*100+0)
+    { /* Old quota format */
+      linux_api = 1;
+    }
+    else
+    { /* new format */
+      linux_api = 2;
+    }
+  }
+#else /* defined LINUX_API_VERSION */
+  linux_api = LINUX_API_VERSION;
 #endif
 }
+
 
 /*
 ** Wrapper for the quotactl(GETQUOTA) call.
@@ -109,7 +179,7 @@ int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb )
 
   if (linux_api == 2)
   {
-    ret = quotactl(QCMD(Q2_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb2);
+    ret = quotactl(QCMD(Q_V2_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb2);
     if (ret == 0)
     {
       dqb->dqb_bhardlimit = dqb2.dqb_bhardlimit;
@@ -124,7 +194,7 @@ int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb )
   }
   else /* if (linux_api = 1) */
   {
-    ret = quotactl(QCMD(Q1_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) dqb);
+    ret = quotactl(QCMD(Q_V1_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) dqb);
   }
   return ret;
 }

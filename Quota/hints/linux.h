@@ -42,6 +42,9 @@ struct dqblk {
 #else
 typedef u_int64_t qsize_t;
 #endif
+/* you can use this switch to hard-wire the quota API if it's not identified correctly */
+/* #define LINUX_API_VERSION 1 */
+/* #define LINUX_API_VERSION 2 */
 
 int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb );
 int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb );

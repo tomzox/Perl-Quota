@@ -1,3 +1,11 @@
+Changes in 1.4.2 (Jan. - Mar. 2002)
+- fixed test.pl to allow uids with more than 5 digits.
+  Thanks to Neil Prockter (perl@iamafreeman.com) for the fix.
+- updated Linux quota version detection with quota-tools 3.04;
+  removed compile-time version detection because it caused problems;
+  added switch LINUX_API_VERSION to hints/linux.h to allow to hard-wire
+  the API in case the automatic version detection fails.
+
 Changes in 1.4.1 (Sep. 2001 - Jan. 2002)
 - added support for an older (intermediate?) version of the new Linux Quota
   API which contains a mixture of v1 and v2 command ids (uses the old GETSTAT
