@@ -580,10 +580,10 @@ rpcquery(host,path,uid=getuid())
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
 	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
 
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
+	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FCUR)));
+	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FSOFT)));
+	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FHARD)));
+	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FTIME)));
 	  }
 #else
 	  errno = ENOSYS;
@@ -720,7 +720,7 @@ getmntent()
 	    aix_mtab_idx += 1;
 
 	    EXTEND(sp,4);
-	    if (vmp->vmt_gfstype != MNT_NFS) {
+	    if ((vmp->vmt_gfstype != MNT_NFS) && (vmp->vmt_gfstype != MNT_NFS3)) {
 	      cp = vmt2dataptr(vmp, VMT_OBJECT);
 	      PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
 	    }
@@ -747,6 +747,7 @@ getmntent()
 	    switch(vmp->vmt_gfstype) {
 	      case MNT_AIX:   cp = "aix"; break;
 	      case MNT_NFS:   cp = "nfs"; break;
+	      case MNT_NFS3:  cp = "nfs"; break;
 	      case MNT_JFS:   cp = "jfs"; break;
 	      case 4:         cp = "afs"; break;
 	      case MNT_CDROM: cp = "cdrom,ignore"; break;

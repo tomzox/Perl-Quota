@@ -22,7 +22,7 @@
 #include <rpc/pmap_prot.h>
 #include <rpc/svc.h>
 
-#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
+#if defined(__APPLE__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #include <rpcsvc/rquota.h>
 #else /* BSDi */
 #include "include/rquota.h"
@@ -52,7 +52,11 @@
 
 #define QS_BHARD dqb_bhardlimit
 #define QS_BSOFT dqb_bsoftlimit
+#if defined(__APPLE__)
+#define QS_BCUR  dqb_curbytes
+#else
 #define QS_BCUR  dqb_curblocks
+#endif
 #define QS_FHARD dqb_ihardlimit
 #define QS_FSOFT dqb_isoftlimit
 #define QS_FCUR  dqb_curinodes

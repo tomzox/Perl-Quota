@@ -16,6 +16,7 @@ elsif($os =~ /^OSF1/)      { $config='dec_osf.h'; }
 elsif($os =~ /^Linux 2/)   { $config='linux.h'; $extraobj='linuxapi.o'; }
 elsif($os =~ /^AIX/)       { $config='aix_4_1.h'; }
 elsif($os =~ /^BSD\/OS 2/ ||
+      $os =~ /^Darwin/    ||
       $os =~ /^FreeBSD/   ||
       $os =~ /^NetBSD/    ||
       $os =~ /^OpenBSD/)   { $config='bsd.h'; }

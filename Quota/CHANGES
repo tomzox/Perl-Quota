@@ -1,3 +1,10 @@
+Changes in 1.4.10 (Jan 2004)
+- Applied patch by Antti Tapaninen (aet at cc.hut.fi) to add support
+  for MacOS X (based on BSD config) and NFS3 support for AIX.
+- Applied patch by Chris Adams (cmadams at hiwaay.net) to avoid warning
+  in Quota::getqcarg() on systems where getmntent(3) may return invalid
+  mount points, e.g. Tru64 UNIX
+
 Changes in 1.4.9 (Aug 2003)
 - Applied patch by Wolfgang.Friebel@desy.de: Changed AFS quota support,
   now based on OpenAFS instead of arla and Kerberos4.

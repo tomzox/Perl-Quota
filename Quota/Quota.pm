@@ -55,7 +55,8 @@ sub getqcarg {
   if(defined($dev) && ($target ne "") && !Quota::setmntent()) {
     while(($fsname,$path,$fstyp) = Quota::getmntent()) {
       next if $fstyp =~ /^(lofs|ignore|auto.*|proc)$/;
-      if($dev == (stat($path))[0]) {
+      my($pdev) = (stat($path))[0];
+      if (defined($pdev) && ($dev == $pdev)) {
 	if($fsname =~ m|^[^/]+:/|) { $ret = $fsname }   #NFS host:/path
         elsif (($fstyp =~ /^nfs/i) && ($fsname =~ m#^(/.*)\@([^/]+)$#))
                                    { $ret = "$2:$1" }   #NFS /path@host
