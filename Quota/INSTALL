@@ -62,10 +62,10 @@ Options:
 
 6)  Linux specials:
 
- a) If you're using an old version of the Linux quota tools on a NFS server,
-    check if Quota::query() reports the correct block usage and limits.
-    Old versions of the rpc.rquotad did report a wrong block size so that
-    all sizes appeared 4 times too high.  If your system shows this error,
+ a) If you're using an ancient version of the Linux quota tools on a NFS
+    server, check Quota::query() results for block usage and limits.
+    Old versions of the rpc.rquotad did report a wrong block size, hence
+    all sizes were 4 times too large.  If your system shows this error,
     you should uncomment #define LINUX_RQUOTAD_BUG in the hints file and
     recompile. The better solution is to update your quota tools though.
 

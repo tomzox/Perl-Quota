@@ -526,7 +526,7 @@ sync(dev=NULL)
           }
           else
 #endif
-	  RETVAL = quotactl(QCMD(Q_SYNC, USRQUOTA), dev, 0, NULL);
+	  RETVAL = linuxquota_sync (dev, FALSE);
 #else
 #ifdef Q_CTL_V2
 #ifdef AIX

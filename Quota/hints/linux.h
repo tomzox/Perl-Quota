@@ -12,7 +12,6 @@
 /* <asm/types.h> is required only on some distributions (Debian 2.0, RedHat)
    if your's doesn't have it you can simply remove the following line */
 #include <asm/types.h>
-#include <linux/quota.h>
 #include <sys/syscall.h>
 #include <mntent.h>
 
@@ -26,28 +25,38 @@
 #include <string.h>
 #include <stdio.h>
 
-/* Heuristic check for the new Quota API V2 */
-#if defined(INITQFNAMES) && (Q_GETQUOTA==0x0D00)
-/* declare the v1 quota block struct */
+/* definitions from sys/quota.h */
+#define USRQUOTA  0             /* element used for user quotas */
+#define GRPQUOTA  1             /* element used for group quotas */
+
+/*
+ * Command definitions for the 'quotactl' system call.
+ * The commands are broken into a main command defined below
+ * and a subcommand that is used to convey the type of
+ * quota that is being manipulated (see above).
+ */
+#define SUBCMDMASK  0x00ff
+#define SUBCMDSHIFT 8
+#define QCMD(cmd, type)  (((cmd) << SUBCMDSHIFT) | ((type) & SUBCMDMASK))
+
+/* declare an internal version of the quota block struct */
+typedef unsigned int qsize_t;
 struct dqblk {
-  __u32 dqb_bhardlimit;   /* absolute limit on disk blks alloc */
-  __u32 dqb_bsoftlimit;   /* preferred limit on disk blks */
-  __u32 dqb_curblocks;    /* current block count */
-  __u32 dqb_ihardlimit;   /* absolute limit on allocated inodes */
-  __u32 dqb_isoftlimit;   /* preferred inode limit */
-  __u32 dqb_curinodes;    /* current # allocated inodes */
-  time_t dqb_btime;       /* time limit for excessive disk use */
-  time_t dqb_itime;       /* time limit for excessive inode use */
+  qsize_t dqb_ihardlimit;   /* absolute limit on allocated inodes */
+  qsize_t dqb_isoftlimit;   /* preferred inode limit */
+  qsize_t dqb_curinodes;    /* current # allocated inodes */
+  qsize_t dqb_bhardlimit;   /* absolute limit on disk blks alloc */
+  qsize_t dqb_bsoftlimit;   /* preferred limit on disk blks */
+  qsize_t dqb_curblocks;    /* current block count */
+  time_t  dqb_btime;        /* time limit for excessive disk use */
+  time_t  dqb_itime;        /* time limit for excessive inode use */
 };
-#else
-typedef u_int64_t qsize_t;
-#endif
 /* you can use this switch to hard-wire the quota API if it's not identified correctly */
-/* #define LINUX_API_VERSION 1 */
-/* #define LINUX_API_VERSION 2 */
+/* #define LINUX_API_VERSION 1 */  /* API range [1..3] */
 
 int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb );
 int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb );
+int linuxquota_sync( const char * dev, int isgrp );
 
 
 #define Q_DIV(X) (X)

@@ -1,3 +1,10 @@
+Changes in 1.4.7 (May 2003)
+- adapted for the latest fashion of Linux quota APIs (version 6.5.1)
+  Thanks to Jay R. Wren, Shane DeRidder, Roman "romke" and Geoffrey Pan
+  for your infos and feedback.
+- added quota threshold monitoring script to the contrib directory.
+  Thanks to Ziaur Rahman.
+
 Changes in 1.4.6 (August 2002)
 - changed the test script to exit if STDIN is not a terminal device.
   This is an interactive script which cannot be run by CPANPLUS.
