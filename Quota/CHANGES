@@ -1,3 +1,7 @@
+Changes in 1.4.3 (May 2002)
+- updated for new version of Solaris VxFS (Veritas Filesystem)
+  by David Lee (T.D.Lee@durham.ac.uk)
+
 Changes in 1.4.2 (Jan. - Mar. 2002)
 - fixed test.pl to allow uids with more than 5 digits.
   Thanks to Neil Prockter (perl@iamafreeman.com) for the fix.

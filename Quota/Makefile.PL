@@ -58,9 +58,10 @@ if ( $os =~ /^SunOS/ ) {
      $extraobj = "$extraobj vxquotactl.o";
      print "Configured with the VERITAS File System on Solaris\n";
    }
-   else {
-     print "Configured without VxFS support\n";
-   }
+   # no warning because newer versions of Solaris have internal VxFS support
+   # else {
+   #   print "Configured without VxFS support\n";
+   # }
 }
 
 #-----------------------------------------------------------------------------#

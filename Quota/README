@@ -1,9 +1,9 @@
 Quota extension module for Perl
 -------------------------------
 
-Author:    Tom Zoerner <tomzo@nefkom.net>
+Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.4
+Version:   1.4.3
 Date:      August 2001
 DSLI-code: Rdcf
            - stable release
@@ -253,7 +253,7 @@ BUGS
 
 AUTHORS
      This module was created 1995 by Tom Zoerner
-     (tomzo@nefkom.net)
+     (email: tomzo AT nefkom DOT net)
      and since then continually improved and ported to
      many operating- and file-systems. Numerous people
      have contributed to this process; for a complete

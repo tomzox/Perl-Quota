@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.4';
+$VERSION = '1.4.3';
 
 bootstrap Quota;
 
@@ -65,8 +65,10 @@ sub getqcarg {
 	else                       { $ret = $path }     #($argtyp eq "mntpt")
 
         # XFS, VxFS and AFS quotas require separate access methods
+        # (optional for VxFS: later versions use 'normal' quota interface)
         if   (($fstyp eq "xfs") && ($fsupp =~ /,XFS/)) { $ret = "(XFS)$ret" }
-        elsif(($fstyp eq "vxfs") && ($fsupp =~ /,VXFS/)) { $ret = "(VXFS)$ret" }
+        elsif(($fstyp eq "vxfs") &&
+              defined($fsupp) && ($fsupp =~ /,VXFS/)) { $ret = "(VXFS)$ret" }
         elsif((($fstyp eq "afs") || ($fsname eq "AFS")) &&
               ($fsupp =~ /,AFS/)) { $ret = "(AFS)$target"; }
         last;
@@ -318,7 +320,8 @@ see INSTALL.
 
 =head1 AUTHORS
 
-This module was created 1995 by Tom Zoerner (tomzo@nefkom.net)
+This module was created 1995 by Tom Zoerner
+(email: tomzo AT nefkom DOT net)
 and since then continually improved and ported to
 many operating- and file-systems. Numerous people
 have contributed to this process; for a complete
