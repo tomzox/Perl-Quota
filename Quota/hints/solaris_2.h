@@ -54,12 +54,3 @@ struct quotactl {
 #define QS_FCUR  dqb_curfiles
 #define QS_BTIME dqb_btimelimit
 #define QS_FTIME dqb_ftimelimit
-
-
-/* MakeMaker parameters for AFS support - do not remove!
-MAKE AFSHOME=/products/security/athena
-MAKE LD_RUN_PATH=$(AFSHOME)/lib
-MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
-MAKE INC=-I$(AFSHOME)/include
-MAKE OBJ=afsquota.o
-*/

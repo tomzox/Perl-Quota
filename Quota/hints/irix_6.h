@@ -14,8 +14,8 @@
 
 #include <sys/param.h>
 #include <sys/types.h>
-/* For IRIX 6.5.1 you might need the following hack */
-/* #define __SYS_SEMA_H__ */
+/* For IRIX 6.5.1 you need the following hack */
+#define __SYS_SEMA_H__ /* prevent sys/sema.h from being loaded */
 #include <sys/quota.h>
 #include <mntent.h>
 
@@ -49,11 +49,3 @@
 #define SGI_XFS
 #define QX_DIV(X) (X)
 #define QX_MUL(X) (X)
-
-
-/* MakeMaker parameters for AFS support - do not remove!
-MAKE AFSHOME=/products/security/athena
-MAKE LDLOADLIBS=-L$(AFSHOME)/lib32 -lkafs -ldes -lkrb -rpath $(AFSHOME)/lib32 -lrpcsvc
-MAKE INC=-I$(AFSHOME)/include
-MAKE OBJ=afsquota.o
-*/

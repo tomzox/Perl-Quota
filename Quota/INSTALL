@@ -17,9 +17,12 @@ Options:
 -> Support for Solaris VxFS should be added automatically if the module
    is installed. If not, #define or #undef SOLARIS_VXFS in myconfig.h
 
--> If you want support for AFS, you need the arla package and the Kerberos
-   libraries to make the appropriate AFS calls (tested with AFS from Transarc).
-   See (2d) below.
+-> If you want support for AFS, you need the OpenAFS package
+   (tested with OpenAFS on (SuSE) Linux, HP-UX10, Solaris 2.6, 2.8, AIX 4.3
+   and IRIX 6.5).
+   The Makefile.PL tries to detect automatically if AFS is preset on a
+   system. If that fails, edit the Makefile.PL to always define $hasafs
+   (and drop me a mail).
 
 
 1)  On Linux systems make sure you have configured your kernel with quota
@@ -45,13 +48,6 @@ Options:
     myconfig.h to include the routines provided with this module. If you
     don't have /usr/include/rpcsvc/rquota.h, include "include/rquota.h"
     instead. If you don't need RPC at all, just define NO_RPC.
-
- c) If you want support for AFS, you first need to install the Arla
-    package (for Linux be sure to install the static libs too). Then
-    edit the hints file by inserting your paths to the Kerberos library
-    and headers at the appropriate places. The Makefile.PL tries to detect
-    automatically if AFS is preset on a system. If that fails, edit
-    the Makefile.PL to always define $hasafs (and drop me a mail).
 
 3)  Generate the Makefile: perl Makefile.PL
 

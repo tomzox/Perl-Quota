@@ -1,35 +1,21 @@
 /*
- *  Interface to AFS with the arla package and Kerberos authentication
+ *  Interface to OpenAFS
  */
 
+#if defined( __hpux)
+#define IGNORE_STDS_H
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
 #include <sys/ioctl.h>
-#if defined( sparc )
-#include <sys/ioccom.h>
-#endif
 
 #define MAXSIZE 2048
+#define MAXDNAME 2048
 
-#include <ktypes.h>
-#include <kafs.h>
-
-/* #include "../arla-0.13/appl/fs_local.h" */
-struct VolumeStatus {
-    int32_t   Vid;
-    int32_t   ParentId;
-    char      Online;
-    char      InService;
-    char      Blessed;
-    char      NeedsSalvage;
-    int32_t   Type;
-    int32_t   MinQuota;
-    int32_t   MaxQuota;
-    int32_t   BlocksInUse;
-    int32_t   PartBlocksAvail;
-    int32_t   PartMaxBlocks;
-};
+#include <afs/afsint.h>
+#include <afs/venus.h>
+#include <resolv.h>
 
 #ifdef SunOS4
 #define _VICEIOCTL(id)  ((unsigned int ) _IOW(V, id, struct ViceIoctl))
@@ -42,7 +28,15 @@ struct VolumeStatus {
 
 int afs_check(void)
 {
-    return k_hasafs();
+  struct  ViceIoctl vi;
+  int32_t code;
+  char space[MAXSIZE];
+ 
+  vi.in_size = 0;
+  vi.out_size = MAXSIZE;
+  vi.out = (caddr_t) space;
+  code = pioctl(NULL, VIOC_GET_WS_CELL, &vi, 0);
+  return  ! code;
 }
 
 
@@ -65,7 +59,7 @@ int afs_getquota(char *path, int *maxQuota, int *blocksUsed)
 	return -1;
     }
 
-    if (k_pioctl(path, VIOCGETVOLSTAT,&a_params,1) == -1) {
+    if (pioctl(path, VIOCGETVOLSTAT,&a_params,1) == -1) {
 	free(a_params.out);
 	return -1;
     }
@@ -100,7 +94,7 @@ int afs_setqlim(char *path, int maxQuota)
     }
 
     /* Read the old volume status */
-    if(k_pioctl(path,VIOCGETVOLSTAT,&a_params,1) == -1) {
+    if(pioctl(path,VIOCGETVOLSTAT,&a_params,1) == -1) {
 	free(a_params.out);
 	return -1;
     }
@@ -115,7 +109,7 @@ int afs_setqlim(char *path, int maxQuota)
     vs = (struct VolumeStatus *) a_params.in;
     vs->MaxQuota = maxQuota;
 
-    if(k_pioctl(path,VIOCSETVOLSTAT,&a_params,1) == -1) {
+    if(pioctl(path,VIOCSETVOLSTAT,&a_params,1) == -1) {
 	free(a_params.in);
 	return -1;
     }
@@ -123,6 +117,13 @@ int afs_setqlim(char *path, int maxQuota)
     free(a_params.in);
     return 0;
 }
+
+#ifdef __hpux
+int sigvec( int sig, struct sigvec *vec, struct sigvec *ovec )
+{
+  return sigvector(sig, vec, ovec);
+}
+#endif
 
 #ifdef STAND_ALONE
 int main(int argc, char **argv)

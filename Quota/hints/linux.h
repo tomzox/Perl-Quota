@@ -91,12 +91,3 @@ int linuxquota_sync( const char * dev, int isgrp );
 #define QX_MUL(X) ((X) << 1)
 #include "include/quotaio_xfs.h"
 
-
-/* MakeMaker parameters for AFS support - do not remove!
-MAKE AFSHOME=/products/security/athena
-MAKE INC=-I$(AFSHOME)/include
-MAKE OBJ=afsquota.o afssys.o
-## Linux does not record LD_RUN_PATH within DLOs, so we do without shlibs
-## and extract the required object from the lib to link statically
-MAKE ARXLIBOBJ=$(AFSHOME)/lib/libkafs.a afssys.o
-*/

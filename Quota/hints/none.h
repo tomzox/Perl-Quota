@@ -125,15 +125,3 @@
  * Depending on your compiler you may have to change the compiler
  * and linker arguments. See man cc(1)
  */
-
-/* MakeMaker parameters for AFS support - do not remove!
-MAKE AFSHOME=/products/security/athena
-MAKE LD_RUN_PATH=$(AFSHOME)/lib
-MAKE LDLOADLIBS=-L$(LD_RUN_PATH) -lkafs -ldes -lkrb -Wl,-R -Wl,$(LD_RUN_PATH)
-MAKE INC=-I$(AFSHOME)/include
-MAKE OBJ=afsquota.o
-## in case your OS has problems with shared libraries, you can link the
-## required objects in statically instead of using the LD_RUN_PATH and
-## LDLOADLIBS above. You must not uncomment both options!
-#MAKE ARXLIBOBJ=$(AFSHOME)/lib/libkafs.a afssys.o
-*/

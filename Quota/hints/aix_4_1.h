@@ -43,11 +43,3 @@
 #define QS_FCUR  dqb_curinodes
 #define QS_BTIME dqb_btime
 #define QS_FTIME dqb_itime
-
-
-/* MakeMaker parameters for AFS support - do not remove!
-MAKE AFSHOME=/products/security/athena
-MAKE LDLOADLIBS=-L$(AFSHOME)/lib -lkafs -ldes -lkrb -lroken -lld -lrpcsvc
-MAKE INC=-I$(AFSHOME)/include
-MAKE OBJ=afsquota.o
-*/

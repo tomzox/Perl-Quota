@@ -39,15 +39,10 @@ if ( -d "/afs" ) {
   my $afs = `df /afs 2>/dev/null`;
   if ($afs =~ /\nAFS|\(AFS/) {
     $hasafs = '-DAFSQUOTA';
-
-    # extract further parameters from the hints file
-    if (open(HINTS,"<hints/$config")) {
-      while(<HINTS>) {
-        if (/^MAKE\s+([^=]+)=(.*)/) { $hint{$1} = $2; }
-      }
-      close(HINTS);
-    }
-    else { warn "cannot open hints file $config: $!\n"; }
+    $AFSHOME = -d "/usr/afsws" ? "/usr/afsws" : "/usr";
+    $extrainc = "-I$AFSHOME/include -I$AFSHOME/include/afs";
+    $extralibs = "-L$AFSHOME/lib -L$AFSHOME/lib/afs -lsys -lrx -lrxkad -llwp";
+    $afsquota = "afsquota.o";
   }
 }
 
@@ -70,34 +65,15 @@ use ExtUtils::MakeMaker;
 
 &WriteMakefile('NAME'         => 'Quota',
                'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) stdio_wrap.o '.
-                                 $extraobj .' '. $hint{'OBJ'},
-               'INC'          => $hint{'INC'},
+                                 "$afsquota $extraobj ". $hint{'OBJ'},
+               'INC'          => $extrainc .' '. $hint{'INC'},
                'DEFINE'       => "$hasafs $hasvxfs",
-               'LIBS'         => [ '-lrpcsvc' ],
+               'LIBS'         => [ "-lrpcsvc $extralibs" ],
                'H'            => [ 'myconfig.h' ],
                'VERSION_FROM' => 'Quota.pm',
                'clean'        => { FILES => 'myconfig.h' },
 );
 
-
-#
-#  Set parameters for AFS shared libs
-#
-
-sub MY::post_constants
-{
-    my $ret = '';
-
-    foreach (qw(AFSHOME EXTRALIBS LDLOADLIBS BSLOADLIBS LD_RUN_PATH)) {
-      if (defined($hint{$_})) {
-        $ret .= "$_ = $hint{$_}\n";
-      }
-    }
-    if ($ret eq '') {
-      print "Configured without AFS support\n";
-    }
-    $ret;
-}
 
 #
 #  Add rules for hints (myconfig.h)

@@ -1,3 +1,7 @@
+Changes in 1.4.9 (Aug 2003)
+- Applied patch by Wolfgang.Friebel@desy.de: Changed AFS quota support,
+  now based on OpenAFS instead of arla and Kerberos4.
+
 Changes in 1.4.8 (May 2003)
 - fixed bug in linuxapi.c, thanks to Shane DeRidder
 
