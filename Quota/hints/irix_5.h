@@ -2,6 +2,8 @@
  *   Configuration for IRIX 5.3
  */
 
+/*   See hints/none.h for a complete list of options with explanations */
+
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/quota.h>

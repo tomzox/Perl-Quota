@@ -1,7 +1,8 @@
-
 /*
  *   Configuration for Linux 2.0.22 and later
  */
+
+/*   See hints/none.h for a complete list of options with explanations */
 
 #include <sys/param.h>
 #include <sys/types.h>

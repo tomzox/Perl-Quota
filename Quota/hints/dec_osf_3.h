@@ -1,7 +1,8 @@
-
 /*
  *   Configuration for DEC OSF/1 V3.2
  */
+
+/*   See hints/none.h for a complete list of options with explanations */
 
 #include <sys/types.h>
 #include <sys/param.h>

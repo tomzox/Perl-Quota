@@ -10,6 +10,13 @@ extern "C" {
 
 #include "config.h"
 
+#ifdef SFIO_VERSION
+#include "stdio_wrap.h"
+#else
+#define std_fopen fopen
+#define std_fclose fclose
+#endif
+
 #if !defined(HAS_BCOPY) || !defined(HAS_SAFE_BCOPY)
 #define BCOPY my_bcopy
 #else
@@ -441,7 +448,7 @@ setmntent()
 	  if((mtab = setmntent(MOUNTED, "r")) == NULL)
 #else
 	  if(mtab != NULL) fclose(mtab);
-	  if((mtab = fopen(MOUNTED,"r")) == NULL)
+	  if((mtab = std_fopen (MOUNTED,"r")) == NULL)
 #endif
 	    RETVAL = -1;
 	  else
@@ -512,7 +519,7 @@ endmntent()
 #ifndef NO_OPEN_MNTTAB
 	    endmntent(mtab);   /* returns always 1 in SunOS */
 #else
-	    fclose(mtab);
+	    std_fclose (mtab);
 #endif
 #else
 	    /* if(mtab != NULL) free(mtab); */

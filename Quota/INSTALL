@@ -59,7 +59,7 @@ If that fails, regard the following instructions step by step:
     No guarantee from me that they do anything useful or don't format
     your hard drive.
 
-6)  Before you start for another OS, type "make distclean"
+6)  Before you start for another OS, type "make clean"
 
 Tom
 ---

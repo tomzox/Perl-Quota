@@ -49,6 +49,7 @@ sub getqcarg {
 
   if($dev && !Quota::setmntent()) {
     while(($fsname,$path,$fstyp) = Quota::getmntent()) {
+      next if $fstyp =~ /^(lofs|ignore|auto.*)$/;
       if($dev == (stat($path))[0]) {
 	if($fsname !~ m#^/#) { $ret = $fsname }
 	elsif($argtyp eq "dev")  { $ret = $fsname }
@@ -64,7 +65,7 @@ sub getqcarg {
     $! = 0;
   }
   Quota::endmntent();
-  return ($_[0] || ".") if ($argtyp eq "path") && ($ret =~ m#^/#);
+  ##return ($_[0] || ".") if ($argtyp eq "path") && ($ret =~ m#^/#);
   $ret;
 }
 
@@ -270,7 +271,7 @@ I<undef> only upon errors.
 =head1 EXAMPLES
 
 An example for each function can be found in the test script
-I<test/quotatest>. See also the contrib directory, which contains
+I<test.pl>. See also the contrib directory, which contains
 some longer scripts, kindly donated by users of the module.
 
 =head1 BUGS

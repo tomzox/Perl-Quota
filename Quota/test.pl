@@ -1,28 +1,47 @@
 #!../../../perl
-#!/local/perl-5.004/bin/perl
 
 use blib;
 use Quota;
 
-print "Enter path to get quota for (NFS possible; default '.'): ";
-chop($path = <STDIN>);
-$path = "." unless $path =~ /\S/;
-$dev = Quota::getqcarg($path) || die "$path: $!\n";
-print "Using device/argument \"$dev\"\n";
+while(1) {
+  print "\nEnter path to get quota for (NFS possible; default '.'): ";
+  chop($path = <STDIN>);
+  $path = "." unless $path =~ /\S/;
+
+  while(1) {
+    $dev = Quota::getqcarg($path);
+    if(!$dev) {
+      warn "$path: mount point not found\n";
+      if(-d $path && $path !~ m#/.$#) {
+	#
+	# try to append "/." to get past automounter fs
+	#
+	$path .= "/.";
+	warn "Trying $path instead...\n";
+	redo;
+      }
+    }
+    last;
+  }
+  redo if !$dev;
+  print "Using device/argument \"$dev\"\n";
 
 ##
-##  Check if quotas present on this filesystem
+##  Check if quotas are present on this filesystem
 ##
 
-if($dev =~ m#^[^/]+:#) {
-  print "Is a remote file system\n";
-}
-elsif(Quota::sync($dev) && ($! != 1)) {  # ignore EPERM
-  warn "Quota::sync: ".Quota::strerr."\n";
-  die "Choose another file system - quotas not functional on this one\n";
-}
-else {
-  print "Quotas are present on this filesystem (sync ok)\n";
+  if($dev =~ m#^[^/]+:#) {
+    print "Is a remote file system\n";
+    last;
+  }
+  elsif(Quota::sync($dev) && ($! != 1)) {  # ignore EPERM
+    warn "Quota::sync: ".Quota::strerr."\n";
+    warn "Choose another file system - quotas not functional on this one\n";
+  }
+  else {
+    print "Quotas are present on this filesystem (sync ok)\n";
+    last;
+  }
 }
 
 ##

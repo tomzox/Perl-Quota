@@ -5,6 +5,8 @@
  *   (this is for use with SYSV flavour, not /usr/bsd)
  */
 
+/*   See hints/none.h for a complete list of options with explanations */
+
 #include <sys/param.h>
 #include <sys/fs/ufs_quota.h>
 #include <sys/mnttab.h>

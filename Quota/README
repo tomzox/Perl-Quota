@@ -1,14 +1,13 @@
-Quota/README  v1.1  August/98  TOMZO
+Quota/README  v1.1.2  August/98  TOMZO
 
 Quota extension module for Perl
 -------------------------------
 
 Author:   Tom Zoerner
-	  Grundig TV Software Development, Fuerth, Germany
-          (formerly IMMD4, CSD, University of Erlangen-Nuernberg)
+	  Grundig CTV Software Development, Fuerth, Germany
           Tom.Zoerner@informatik.uni-erlangen.de
 
-Version:   1.1
+Version:   1.1.2
 Date:      August 1998
 DSLI-code: Rdcf
            - stable release
@@ -16,7 +15,7 @@ DSLI-code: Rdcf
 	   - C compiler required for installation
 	   - plain functions, no references used
 Supported: SunOS 4.1.3,
-	   Solaris 2.4 & 2.5,
+	   Solaris 2.4 & 2.5 & 2.6,
            HP-UX 9.0x & 10.10 & 10.20,
 	   IRIX 5.2 & 5.3 & 6.2 & 6.4,
            OSF/1,
@@ -28,6 +27,7 @@ Copyright: none / Public Domain
 
 Documentation is in pod format at the end of Quota.pm,
 installation hints are in a file named INSTALL inside this package.
+See also CHANGES for a history of updates to this module.
 
 -----------------------------------------------------------------------------
   THIS PACKAGE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR
@@ -213,9 +213,8 @@ RETURN VALUES
 
 EXAMPLES
      An	example	for each function can be found in the test script
-     test/quotatest. See also the contrib directory, which
-     contains some longer scripts, kindly donated by users of the
-     module.
+     test.pl. See also the contrib directory, which contains 
+     some longer scripts, kindly donated by users of the module.
 
 BUGS
      With remote quotas	we have	to rely	on the remote system to

@@ -5,6 +5,8 @@ Makefile.PL
 Quota.pm
 Quota.xs
 quotactl.c
+stdio_wrap.c
+stdio_wrap.h
 README
 test.pl
 hints/dec_osf_3.h

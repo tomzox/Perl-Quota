@@ -25,7 +25,7 @@ BEGIN { push(@INC, "../../lib"); }
 use ExtUtils::MakeMaker;
 
 &WriteMakefile('NAME'         => 'Quota',
-	       'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) '.$extraobj,
+	       'OBJECT'       => '$(BASEEXT)$(OBJ_EXT) stdio_wrap.o '.$extraobj,
 	       'INC'          => '',
 	       'LIBS'         => [ '-lrpcsvc' ],
 	       'H'            => [ 'config.h' ],

@@ -1,7 +1,8 @@
-
 /*
  *   Configuration for HP-UX 9.0.x & HP-UX 10.10 & HP-UX 10.20
  */
+
+/*   See hints/none.h for a complete list of options with explanations */
 
 #include <sys/param.h>
 #include <sys/quota.h>

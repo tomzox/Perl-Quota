@@ -1,7 +1,10 @@
 /*
  *   Configuration for 6.2 - 6.4
  *   (the only difference to IRIX 5 is XFS support)
+ *   Warning: XFS support is still untested as of version 1.1.2!
  */
+
+/*   See hints/none.h for a complete list of options with explanations */
 
 #include <unistd.h>
 #include <stdio.h>

@@ -1,7 +1,8 @@
-
 /*
  *   Configuration for SunOS 4.1.3
  */
+
+/*   See hints/none.h for a complete list of options with explanations */
 
 #include <sys/param.h>
 #include <ufs/quota.h>

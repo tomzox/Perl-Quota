@@ -12,6 +12,8 @@
  *   If you get it to work, please mail me    -tom
  */
 
+/*   See hints/none.h for a complete list of options with explanations */
+
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <fstab.h>

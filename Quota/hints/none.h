@@ -1,6 +1,5 @@
-
 /*
- *   Configuration example for unknown OS
+ *   Configuration options
  */
 
 #include <sys/param.h>
@@ -88,4 +87,13 @@
 #define QS_FCUR  dqb_curfiles
 #define QS_BTIME dqb_btimelimit
 #define QS_FTIME dqb_ftimelimit
+
+/* SFIO_VERSION should get defined automatically if sfio routines
+ * are used with Perl instead of stdio; but you might wanna define
+ * it here if you are using PerlIO and experience problems with
+ * Quota::getqcarg() or the Quota::getmntent() family.
+ * If PerlIO is used, PERLIO_IS_STDIO is not defined */
+/* #ifndef PERLIO_IS_STDIO /**/
+/* #define SFIO_VERSION x.x /**/
+/* #endif /**/
 
