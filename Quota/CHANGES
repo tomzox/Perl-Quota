@@ -1,3 +1,21 @@
+Changes in 1.4 (August 2001)
+- added support for the Alan Cox (ac) branch of the Linux kernel which uses a
+  new and completely backwards incompatible Quota API.  The API version is
+  determined dynamically by use of Q_GETSTATS/v2, i.e. the same module
+  binary will work on kernels with either API. Since the Linux quota API now
+  needs some very special handling, it moved it into a separate file called
+  linuxapi.c.  NOTE: internally the module still uses the old (v1) dqblk
+  structure, so any advantages the new struct mem_dqblk might have are not
+  present here.  Let me know if this is a problem for you.
+- commented out #define LINUX_RQUOTAD_BUG in hints/linux.h as this should
+  no longer be needed on most systems. Updated INSTALL and README accordingly.
+- removed the Linux syscall wrapper in quotactl.c as this is now in libc.
+- changed copyright from "none/public domain" to Artistic License (not to
+  restrict usage, but simply to include the legal disclaimers)
+- fixed bug in Quota::query() and setqlim(): when argument isgrp was present
+  but 0, the functions still did work on group quotas instead of user quotas.
+  Thanks to Szymon Juraszczyk (szymon@ssk.pl) for pointing this out.
+
 Changes in 1.3.4 (May 2001)
 - added support for SGI XFS on Linux.  Thanks to Brian Johnson
   (brian@dev.brianj.com) for providing a development account.
@@ -12,6 +30,7 @@ Changes in 1.3.3 (May 2001)
   Reported by Lou Hevly (lou@visca.com)
 - fixed hints/linux.h for RedHat 7.1: use sys/quota.h instead of linux/quota.h
   because the former has an incompatible definition of struct dqblk.
+  [NOTE: this change proved to be wrong and was undone in 1.4]
   Reported by Waldemar Krotkiewicz (wk@brenet.de), Andy Choi (andy@ensim.com)
   and Brian Johnson (brian@dev.brianj.com).
 

@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.3.4';
+$VERSION = '1.4';
 
 bootstrap Quota;
 
@@ -302,15 +302,12 @@ some longer scripts, kindly donated by users of the module.
 
 =head1 BUGS
 
-With remote quotas we have to rely on the remote system to state
-correctly which block size the quota values are referring to.
-Unfortunately on Linux the rpc.rquotad reports a block size of
-4 kilobytes, which is wildly incorrect. So you either need to fix
-your Linux rquotad or keep B<#define LINUX_RQUOTAD_BUG> defined,
-which will Quota::query always let assume all remote partners
-in reality report 1kB blocks. Of course that'll break with mixed
-systems, so better fix your rquotad. For more info on other Linux
-bugs please see INSTALL.
+With remote quotas we have to rely on the remote system to
+state correctly which block size the quota values are
+referring to. Old versions of the Linux rpc.rquotad
+reported a block size of 4 kilobytes, which was wildly
+incorrect. For more info on this and other Linux bugs please
+see INSTALL.
 
 =head1 AUTHORS
 

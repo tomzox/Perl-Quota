@@ -4,7 +4,7 @@ MANIFEST
 Makefile.PL
 Quota.pm
 Quota.xs
-quotactl.c
+linuxapi.c
 afsquota.c
 vxquotactl.c
 stdio_wrap.c

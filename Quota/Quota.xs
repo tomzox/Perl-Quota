@@ -240,7 +240,7 @@ void
 query(dev,uid=getuid(),isgrp=0)
 	char *	dev
 	int	uid
-	char    isgrp
+	int     isgrp
 	PPCODE:
 	{
 	  struct dqblk dqblk;
@@ -334,7 +334,7 @@ query(dev,uid=getuid(),isgrp=0)
 		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
 #else /* not USE_IOCTL */
 #ifdef Q_CTL_V3  /* Linux */
-	      err = quotactl(QCMD(Q_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, CADR &dqblk);
+	      err = linuxquota_query(dev, uid, isgrp, &dqblk);
 #else /* not Q_CTL_V3 */
 #ifdef Q_CTL_V2
 #ifdef AIX
@@ -451,9 +451,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	      RETVAL = -1;
 #else
 #ifdef Q_CTL_V3  /* Linux */
-	    dqblk.QS_BCUR  = 0;
-	    dqblk.QS_FCUR  = 0;
-	    RETVAL = quotactl (QCMD(Q_SETQLIM,(isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, CADR &dqblk);
+	    RETVAL = linuxquota_setqlim (dev, uid, isgrp, &dqblk);
 #else
 #ifdef Q_CTL_V2
 	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,(isgrp ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
@@ -526,6 +524,10 @@ sync(dev=NULL)
                 errno = ENOENT;
                 RETVAL = -1;
               }
+            }
+            else {
+              errno = ENOENT;
+              RETVAL = -1;
             }
           }
           else

@@ -2,10 +2,9 @@ Quota extension module for Perl
 -------------------------------
 
 Author:    Tom Zoerner <tomzo@nefkom.net>
-           (formerly <Tom.Zoerner@informatik.uni-erlangen.de>)
 
-Version:   1.3.4
-Date:      May 2001
+Version:   1.4
+Date:      August 2001
 DSLI-code: Rdcf
            - stable release
            - support by developer
@@ -17,13 +16,14 @@ Supported: SunOS 4.1.3,
            IRIX 5.2 & 5.3 & 6.2 - 6.5,
            OSF/1 & Digital Unix 4,
            BSDi 2, FreeBSD 3, OpenBSD & NetBSD (no RPC),
-           Linux RedHat, SuSE, Debian - kernel 2.0.30 and later,
+           Linux - kernel 2.0.30 and later, incl. Quota API v2,
            AIX 4.1 & 4.2.
            AFS (Andrew File System) on many of the above (see INSTALL),
 	   VxFS (Veritas File System) on Solaris 2.
 Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 Author:    TOMZO  (Tom Zoerner)
-Copyright: none / Public Domain
+License:   Same as Perl: Artistic License or GPL;
+           See also http://www.opensource.org/licenses/
 
 Documentation is in pod format at the end of Quota.pm,
 installation hints are in a file named INSTALL inside this package.
@@ -237,14 +237,10 @@ EXAMPLES
 BUGS
      With remote quotas we have to rely on the remote system to
      state correctly which block size the quota values are
-     referring to.  Unfortunately on Linux the rpc.rquotad
-     reports a block size of 4 kilobytes, which is wildly
-     incorrect. So you either need to fix your Linux rquotad or
-     keep #define LINUX_RQUOTAD_BUG defined, which will
-     Quota::query always let assume all remote partners in
-     reality report 1kB blocks. Of course that'll break with
-     mixed systems, so better fix your rquotad. For more info
-     on other Linux bugs please see INSTALL.
+     referring to. Old versions of the Linux rpc.rquotad
+     reported a block size of 4 kilobytes, which was wildly
+     incorrect. For more info on this and other Linux bugs please
+     see INSTALL.
 
 AUTHORS
      This module was created 1995 by Tom Zoerner

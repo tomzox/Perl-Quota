@@ -16,9 +16,6 @@ Options:
 -> Support for Solaris VxFS should be added automatically if the module
    is installed. If not, #define or #undef SOLARIS_VXFS in myconfig.h
 
--> On a Linux NFS server you may want to fix your rpc.rquotad
-   See (2c) below for instructions.
-
 -> If you want support for AFS, you need the arla package and the Kerberos
    libraries to make the appropriate AFS calls (tested with AFS from Transarc).
    See (2d) below.
@@ -28,10 +25,9 @@ Options:
     support. You also need the quota utilities and headers. E.g., with
     the SuSE Linux 6.0 distribution you'll find them in package ap::quota.
     If your distribution doesn't include the package you can get it from
-    ftp://ftp.etter.ch/pub/linux/kernel/subsystems/quota/all.tar.gz
-    (also available at other Linux mirrors). See also (2c) below.
+    <URL:http://sourceforge.net/projects/linuxquota>. See also (6) below.
 
-2)  Generate the hints file.
+2)  Link or create the hints file.
 
  a) Should be done by Makefile.PL for all supported systems. If not, and
     there is a file below hints/ for your operating system (maybe for a
@@ -49,28 +45,7 @@ Options:
     don't have /usr/include/rpcsvc/rquota.h, include "include/rquota.h"
     instead. If you don't need RPC at all, just define NO_RPC.
 
- c) If you use Linux on a NFS server, you should keep
-    #define LINUX_RQUOTAD_BUG as long as you don't have a correctly working
-    rpc.rquotad. To achieve that, simply replace line 58 in rquota_server.c
-    "*blksize = st.st_blksize;" with "*blksize = 1024;". Then recompile
-    (you may need to add #include <asm/types.h> for __u32). While you're
-    at it you may also want to fix another bug in rpc.rquotad (although
-    in my module I have a workaround for it). After line 192 in
-    function getquotainfo() add after the call to memcpy():
-    {
-      struct timeval tv;
-      gettimeofday(&tv, NULL);
-      if (result.getquota_rslt_u.gqr_rquota.rq_btimeleft > tv.tv_sec)
-	result.getquota_rslt_u.gqr_rquota.rq_btimeleft -= tv.tv_sec;
-      else
-	result.getquota_rslt_u.gqr_rquota.rq_btimeleft = 0;
-      if (result.getquota_rslt_u.gqr_rquota.rq_ftimeleft > tv.tv_sec)
-	result.getquota_rslt_u.gqr_rquota.rq_ftimeleft -= tv.tv_sec;
-      else
-	result.getquota_rslt_u.gqr_rquota.rq_ftimeleft = 0;
-    }
-
- d) If you want support for AFS, you first need to install the Arla
+ c) If you want support for AFS, you first need to install the Arla
     package (for Linux be sure to install the static libs too). Then
     edit the hints file by inserting your paths to the Kerberos library
     and headers at the appropriate places. The Makefile.PL tries to detect
@@ -84,14 +59,41 @@ Options:
 5)  Run "make test" to check if the module routines do work correctly.
     (Since release 1.0 you can test the module without installing)
 
-    The contrib directory contains some additional examples, donated by
+6)  Linux specials:
+
+ a) If you're using an old version of the Linux quota tools on a NFS server,
+    check if Quota::query() reports the correct block usage and limits.
+    Old versions of the rpc.rquotad did report a wrong block size so that
+    all sizes appeared 4 times too high.  If your system shows this error,
+    you should uncomment #define LINUX_RQUOTAD_BUG in the hints file and
+    recompile. The better solution is to update your quota tools though.
+
+ b) If you're using RedHat 7.1 or later, or the Alan Cox (ac) branch of
+    the Linux 2.4.x kernels, you're victim of a new and completely
+    backwards incompatible Quota file format and quotactl API. If you've
+    downloaded the kernel separately, make sure to install the latest
+    version of the quota tools: see (1).
+
+    If the Quota module does not find quotas for any users anymore, the
+    reason may be you've not set up the new aquota.user/group files yet.
+    Remember: after creating these files with quotackeck(8) or
+    convertquota(8) you have to execute quotaon(8) another time. You'll
+    not see this requirement with quota(1) because that program reads the
+    quota files directly if the kernel query fails; the module however only
+    goes through the kernel.  If in doubt, do an strace(1) on the quota(1)
+    call. Normally you should see no access to the aquota files in the trace.
+    Alternatively, make the quota files readable for root only (recommended
+    anyway) and try quota -v again under a non-root login. If this fails,
+    the kernel has not enabled quota support.
+
+7)  To install the module in your perl tree:  "make install"
+    You may need to su root before this step.
+
+    The contrib directory contains some usage examples, donated by
     users. No guarantee from me that they do anything useful or don't
     format your hard drive.
 
-6)  To install the module in your perl tree:  "make install"
-    You may need to su root before this step.
-
-7)  Before you start for another OS, type "make clean"
+8)  Before you start for another OS, type "make clean"
 
 Please mail me any changes in the hints files or Makefile.PL you had to
 apply to get the package to compile. Please remember to include in your

@@ -12,8 +12,7 @@
 /* <asm/types.h> is required only on some distributions (Debian 2.0, RedHat)
    if your's doesn't have it you can simply remove the following line */
 #include <asm/types.h>
-/*#include <linux/quota.h>*/  /* is incompatible on RedHat7.1, use sys/quota.h instead */
-#include <sys/quota.h>
+#include <linux/quota.h>
 #include <sys/syscall.h>
 #include <mntent.h>
 
@@ -26,6 +25,27 @@
 
 #include <strings.h>
 #include <stdio.h>
+
+/* Heuristic check for the new Quota API V2 */
+#if defined(INITQFNAMES) && (Q_GETQUOTA==0x0D00)
+/* declare the v1 quota block struct */
+struct dqblk {
+  __u32 dqb_bhardlimit;   /* absolute limit on disk blks alloc */
+  __u32 dqb_bsoftlimit;   /* preferred limit on disk blks */
+  __u32 dqb_curblocks;    /* current block count */
+  __u32 dqb_ihardlimit;   /* absolute limit on allocated inodes */
+  __u32 dqb_isoftlimit;   /* preferred inode limit */
+  __u32 dqb_curinodes;    /* current # allocated inodes */
+  time_t dqb_btime;       /* time limit for excessive disk use */
+  time_t dqb_itime;       /* time limit for excessive inode use */
+};
+#else
+typedef u_int64_t qsize_t;
+#endif
+
+int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb );
+int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb );
+
 
 #define Q_DIV(X) (X)
 #define Q_MUL(X) (X)
@@ -50,7 +70,8 @@
 #define QS_BTIME dqb_btime
 #define QS_FTIME dqb_itime
 
-#define LINUX_RQUOTAD_BUG
+/* uncomment this is you're using NFS with a version of the quota tools < 3.0 */
+/* #define LINUX_RQUOTAD_BUG */
 
 /* optional: for support of SGI XFS file systems - comment out if not needed */
 #define SGI_XFS
