@@ -14,7 +14,7 @@ If that fails, regard the following instructions step by step.
 Options:
 
 -> Support for Solaris VxFS should be added automatically if the module
-   is installed. If not, #define or #undef SOLARIS_VXFS in config.h
+   is installed. If not, #define or #undef SOLARIS_VXFS in myconfig.h
 
 -> On a Linux NFS server you may want to fix your rpc.rquotad
    See (2c) below for instructions.
@@ -35,17 +35,17 @@ Options:
 
  a) Should be done by Makefile.PL for all supported systems. If not, and
     there is a file below hints/ for your operating system (maybe for a
-    previous release), just create a link named "config.h" to that file:
-    ln -s hints/my-os.h config.h
+    previous release), just create a link named "myconfig.h" to that file:
+    ln -s hints/my-os.h myconfig.h
 
- b) Else, use hints/none.h to create a config.h of your own. Check which
+ b) Else, use hints/none.h to create a myconfig.h of your own. Check which
     #includes you need in the online manuals. Contact me before you invest
     a lot of time, it might already be done.
 
     Edit Makefile.PL to maybe add/delete some libraries. Usually you'll
     need only librpcsvc for the quota RPC mechanism. If you don't have
     this library or it lacks the quota routines, #define MY_XDR in
-    config.h to include the routines provided with this module. If you
+    myconfig.h to include the routines provided with this module. If you
     don't have /usr/include/rpcsvc/rquota.h, include "include/rquota.h"
     instead. If you don't need RPC at all, just define NO_RPC.
 
@@ -99,4 +99,4 @@ mail the name of used OS and version numbers of OS (uname -rs) and module.
 
 Tom
 ---
-tom.zoerner@informatik.uni-erlangen.de
+tomzo@nefkom.net

@@ -1,3 +1,15 @@
+Changes in 1.3.2 (February 2001)
+- please note my new email address: tomzo@nefkom.net
+- fixed AFS detection in Makefile.PL for Perl 5.6
+  thanks to Wolfgang Friebel <friebel@ifh.de>
+- adapted getmntent for incompatible change of struct statfs in OpenBSD 2.7
+  thanks to andrew@ugh.net.au
+- adapted getqcarg for for OpenBSD and BSDi: define QCARG_MNTPT for all BSD os
+  as reported by andrew@ugh.net.au and Chee-Wai Yeung <cheewai@cs.ust.hk>
+- fixed block to kB conversion in Quota::query() for VxFS
+  as reported by Rui Monteiro <rmonteiro@whatevernet.pt>
+- renamed config.h symlink to myconfig.h to avoid conflict with Perl config
+
 Changes in 1.3.1 (October 2000)
 - added support for NetBSD, merged hints for BSD-based systems
   by Jaromir Dolecek <jdolecek@NetBSD.org>

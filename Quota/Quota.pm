@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.3.1';
+$VERSION = '1.3.2';
 
 bootstrap Quota;
 
@@ -314,8 +314,7 @@ bugs please see INSTALL.
 
 =head1 AUTHORS
 
-This module was created 1995 by Tom Zoerner
-(Tom.Zoerner@informatik.uni-erlangen.de)
+This module was created 1995 by Tom Zoerner (tomzo@nefkom.net)
 and since then continually improved and ported to
 many operating- and file-systems. Numerous people
 have contributed to this process; for a complete

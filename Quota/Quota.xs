@@ -8,7 +8,7 @@ extern "C" {
 }
 #endif
 
-#include "config.h"
+#include "myconfig.h"
 
 #ifdef SFIO_VERSION
 #include "stdio_wrap.h"
@@ -274,9 +274,9 @@ query(dev,uid=getuid(),isgrp=0)
             err = vx_quotactl(VX_GETQUOTA, dev+6, uid, CADR &vxfs_dqb);
             if(!err) {
               EXTEND(sp,8);
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_curblocks)));
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_bsoftlimit)));
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_bhardlimit)));
+              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_curblocks))));
+              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bsoftlimit))));
+              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bhardlimit))));
               PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_btimelimit)));
               PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_curfiles)));
               PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_fsoftlimit)));
@@ -671,7 +671,12 @@ getmntent()
               PUSHs(sv_2mortal(newSVpv(fstype, strlen(fstype))));
             else
 #endif
+#ifndef OpenBSD2_7
               PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
+#else
+              /* OpenBSD struct statfs lacks the f_type member (starting with release 2.7) */
+              PUSHs(sv_2mortal(newSViv((IV)"")));
+#endif
 	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_flags)));
 	    mtab_size--;
 	    mntp++;

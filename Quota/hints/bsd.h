@@ -3,8 +3,7 @@
  *   BSDi, FreeBSD, NetBSD, OpenBSD
  *
  *   Ported to BSDI 2.0 by Jim Hribnak (hribnak@nucleus.com) Aug 28 1997
- *   with the help of the original author Tom Zoerner 
- *   (Tom.Zoerner@informatik.uni-erlangen.de)
+ *   with the help of the original author Tom Zoerner
  *   OpenBSD 2.0 mods provided by James Shelburne (reilly@eramp.net)
  *   FreeBSD mods provided by Kurt Jaeger <pi@complx.LF.net>
  *           and Jon Schewe <schewe@tcfreenet.org>
@@ -47,9 +46,7 @@
 #define Q_SETQLIM Q_SETQUOTA
 #define CADR (caddr_t)
 
-#if defined(__FreeBSD__) || defined(__NetBSD__)
 #define QCARG_MNTPT
-#endif
 
 #define NO_RPC
 

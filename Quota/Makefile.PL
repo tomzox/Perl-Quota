@@ -21,11 +21,11 @@ elsif($os =~ /^BSD\/OS 2/ ||
       $os =~ /^OpenBSD/)   { $config='bsd.h'; }
 
 if (defined($config)) {
-  print "Using hints/$config for config.h\n";
-  if (-e "config.h" && (!(-l "config.h") || (readlink("config.h") ne "hints/$config"))) {
-     die "\nFATAL: config.h already exists.\n\n" .
+  print "Using hints/$config for myconfig.h\n";
+  if (-e "myconfig.h" && (!(-l "myconfig.h") || (readlink("myconfig.h") ne "hints/$config"))) {
+     die "\nFATAL: myconfig.h already exists.\n\n" .
          "You need to do a `make clean' before you configure for a new platform.\n".
-	 "If that doesn't help, remove config.h manually.\n";
+	 "If that doesn't help, remove myconfig.h manually.\n";
   }
 }
 else {
@@ -36,8 +36,8 @@ else {
 # check whether the Andrew File System (AFS) is installed and running
 
 if ( -d "/afs" ) {
-  my ($afs) = `df /afs 2>/dev/null`;
-  if ($afs =~ /\nAFS|\(AFS/s) {
+  my $afs = `df /afs 2>/dev/null`;
+  if ($afs =~ /\nAFS|\(AFS/) {
     $hasafs = '-DAFSQUOTA';
 
     # extract further parameters from the hints file
@@ -73,9 +73,9 @@ use ExtUtils::MakeMaker;
                'INC'          => $hint{'INC'},
                'DEFINE'       => "$hasafs $hasvxfs",
                'LIBS'         => [ '-lrpcsvc' ],
-               'H'            => [ 'config.h' ],
+               'H'            => [ 'myconfig.h' ],
                'VERSION_FROM' => 'Quota.pm',
-               'clean'        => { FILES => 'config.h' },
+               'clean'        => { FILES => 'myconfig.h' },
 );
 
 
@@ -99,7 +99,7 @@ sub MY::post_constants
 }
 
 #
-#  Add rules for hints (config.h)
+#  Add rules for hints (myconfig.h)
 #  and extra objects that need special compiler arguments
 #
 
@@ -110,16 +110,16 @@ sub MY::postamble
 
     if(!defined $config) {
       $ret .= '
-config.h:
-	@echo "You need to make a config.h.  See the file INSTALL.";
+myconfig.h:
+	@echo "You need to make a myconfig.h.  See the file INSTALL.";
 	@false
 '
     }
     else {
       $ret .= "
-config.h:
-	rm -f config.h
-	ln -s hints/$config config.h
+myconfig.h:
+	rm -f myconfig.h
+	ln -s hints/$config myconfig.h
 "
     }
 
