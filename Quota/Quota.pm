@@ -117,14 +117,14 @@ Quota - Perl interface to file system quotas
 
     ($block_curr, $block_soft, $block_hard, $block_timelimit,
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
-    Quota::query($dev [,$uid]);
+    Quota::query($dev [,$uid [,isgrp]]);
 
     ($block_curr, $block_soft, $block_hard, $block_timelimit,
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
     Quota::rpcquery($host, $path [,$uid]);
 
     Quota::setqlim($dev, $uid, $block_soft, $block_hard,
-		   $inode_soft, $inode_hard [,$tlo]);
+		   $inode_soft, $inode_hard [,$tlo [,isgrp]]);
 
     Quota::sync([$dev]);
 
@@ -220,6 +220,10 @@ The main purpose of this function is to check if quota is enabled
 in the kernel and for a particular file system. Read the B<quotaon(1m)>
 man page on how to enable quotas on a file system.
 
+Note: on some systems this function always returns a success indication,
+even on partitions which do not have quotas enabled (e.g. Linux 2.4).
+This is not a bug in this module; it's a limitation in certain kernels.
+
 =item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) =>
 
 I<Quota::rpcquery($host,$path,$uid)>
@@ -286,13 +290,16 @@ use this function to output error messages, since the normal messages
 don't always make sense for quota errors
 (e.g. I<ESRCH>: B<No such process>, here: B<No quota for this user>)
 
+Note that this function only returns a defined result if you called a
+Quota command directly before which returned an error indication.
+
 =head1 RETURN VALUES
 
 Functions that are supposed return lists or scalars, return I<undef> upon
 errors. As usual B<$!> contains the error code (see B<Quota::strerr>).
 
-B<Quota::endmntent> always returns I<undef>. All other functions return
-I<undef> only upon errors.
+B<Quota::endmntent> always returns I<undef>.
+All other functions return 0 upon success, non-zero integer otherwise.
 
 =head1 EXAMPLES
 

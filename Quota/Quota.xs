@@ -376,7 +376,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	int	fs
 	int	fh
 	int	timelimflag
-	char    isgrp
+	int     isgrp
 	CODE:
 	{
 	  struct dqblk dqblk;

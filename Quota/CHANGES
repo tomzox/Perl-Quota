@@ -1,9 +1,18 @@
+Changes in 1.4.1 (Sep. 2001 - Jan. 2002)
+- added support for an older (intermediate?) version of the new Linux Quota
+  API which contains a mixture of v1 and v2 command ids (uses the old GETSTAT
+  id, however with the new and larger struct as argument). Required for
+  RedHat-7.1.  Thanks to Andy Choi (andy@ensim.com) for pointing this out.
+- enabled RPC in hints/bsd.h
+  Confirmed to work on FreeBSD by Alex Batko (abatko@cs.mcgill.ca)
+- fixed several glitches in the manual page.
+
 Changes in 1.4 (August 2001)
 - added support for the Alan Cox (ac) branch of the Linux kernel which uses a
   new and completely backwards incompatible Quota API.  The API version is
   determined dynamically by use of Q_GETSTATS/v2, i.e. the same module
   binary will work on kernels with either API. Since the Linux quota API now
-  needs some very special handling, it moved it into a separate file called
+  needs some very special handling, I moved it into a separate file called
   linuxapi.c.  NOTE: internally the module still uses the old (v1) dqblk
   structure, so any advantages the new struct mem_dqblk might have are not
   present here.  Let me know if this is a problem for you.

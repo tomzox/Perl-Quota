@@ -17,6 +17,15 @@
 #define Q2_SETQUOTA  0x0E00
 #define Q2_GETSTATS  0x1100
 
+
+#if defined(INITQFNAMES) && (Q_GETQUOTA==0x0300) && (Q_GETSTATS==0x0800)
+/* this is an early version of the quota patch which did not have the
+** version element in the stats struct. Hence it's impossible to detect
+** at runtime with a sufficient degree of certainity. */
+# define LINUX_API_V2_ONLY
+#endif
+
+
 /*
 ** Copy of struct declarations in the v2 quota.h header file
 ** (with structure names changed to avoid conflicts with v2 headers).
@@ -53,6 +62,7 @@ struct dqblk_v2 {
 */
 static int linux_api = 0;
 
+
 /*
 **  Check kernel quota version
 **  Derived from quota-tools 3.01 by Jan Kara <jack@suse.cz>
@@ -62,6 +72,7 @@ static int linux_api = 0;
 
 static void linuxquota_get_api( void )
 {
+#ifndef LINUX_API_V2_ONLY
   struct dqstats_v2 stats;
 
   if (quotactl(QCMD(Q2_GETSTATS, 0), NULL, 0, (void *)&stats) == 0)
@@ -78,6 +89,10 @@ static void linuxquota_get_api( void )
     else
       linux_api = 3;
   }
+
+#else /* defined LINUX_API_V2_ONLY */
+  linux_api = 2;
+#endif
 }
 
 /*

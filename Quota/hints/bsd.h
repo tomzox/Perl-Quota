@@ -11,12 +11,6 @@
  *           Jaromir Dolecek <jdolecek@NetBSD.org>
  */
 
-/*
- *   RPC yet unsupported.
- *   If you want RPC, #undef NO_RPC below.
- *   If you get it to work, please mail me    -tom
- */
-
 /*   See hints/none.h for a complete list of options with explanations */
 
 #include <sys/param.h>
@@ -47,8 +41,6 @@
 #define CADR (caddr_t)
 
 #define QCARG_MNTPT
-
-#define NO_RPC
 
 #define MY_XDR
 
