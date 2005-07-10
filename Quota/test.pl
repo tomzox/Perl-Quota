@@ -115,6 +115,14 @@ if($dev =~ m#^/#) {
   print "Query localhost via RPC for $uid.\n";
 
   ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path, $uid);
+  if(!defined($bc)) {
+    warn Quota::strerr,"\n\n";
+    print "Retrying with fake authentication for UID $uid.\n";
+    Quota::rpcauth($uid);
+    ($bc,$bs,$bh,$bt,$fc,$fs,$fh,$ft) = Quota::rpcquery('localhost', $path, $uid);
+    Quota::rpcauth();
+  }
+
   if(defined($bc)) {
     my($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime($bt);
     $bt = sprintf("%04d-%02d-%02d/%02d:%02d", $year+1900,$mon+1,$mday,$hour,$min) if $bt;

@@ -7,7 +7,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.5.0';
+$VERSION = '1.5.1';
 
 bootstrap Quota;
 
@@ -127,6 +127,8 @@ Quota - Perl interface to file system quotas
     Quota::rpcquery($host, $path [,$uid]);
 
     Quota::rpcpeer([$port [,$use_tcp [,timeout]]]);
+    
+    Quota::rpcauth([$uid [,$gid [,$hostname]]]);
 
     Quota::setqlim($dev, $uid, $block_soft, $block_hard,
 		   $inode_soft, $inode_hard [,$tlo [,isgrp]]);
@@ -244,6 +246,12 @@ Configure parameters for subsequent RPC queries; all parameters are
 optional.  By default the portmapper on the remote host is used
 (i.e. default port is 0, protocol is UDP)  The default timeout is
 4 seconds.
+
+=item I<Quota::rpcauth($uid,$gid,$hostname)>
+
+Configure authorization parameters for subsequent RPC queries; 
+all parameters are optional. By default uid and gid are taken from 
+owner of the process and hostname is the host name of current machine.
 
 =item I<$arg = Quota::getqcarg($path)>
 

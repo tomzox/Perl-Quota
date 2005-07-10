@@ -47,6 +47,13 @@ static struct
   unsigned        timeout;
 } quota_rpc_cfg = {FALSE, 0, 4000};
 
+static struct
+{
+    int           uid;
+    int           gid;
+    char          hostname[MAX_MACHINE_NAME + 1];
+} quota_rpc_auth = {-1, -1, {0} };
+
 /*
  * fetch quotas from remote host
  */
@@ -93,8 +100,18 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
 
   if (client == NULL)
     return ((int) rpc_createerr.cf_stat);
-
-  client->cl_auth = authunix_create_default();
+  
+  /* 
+   *  Create an authentication handle
+   */
+  if ((quota_rpc_auth.uid != -1) && (quota_rpc_auth.gid != -1)) {
+    client->cl_auth = authunix_create(quota_rpc_auth.hostname,
+                                      quota_rpc_auth.uid,
+                                      quota_rpc_auth.gid, 0, 0);
+  }
+  else {
+    client->cl_auth = authunix_create_default();
+  }
 
   /*
    *  Call remote server
@@ -625,6 +642,47 @@ rpcpeer(port=0,use_tcp=FALSE,timeout=RPC_DEFAULT_TIMEOUT)
 	  quota_rpc_cfg.timeout = timeout;
 #endif
 	}
+
+int
+rpcauth(uid=-1,gid=-1,hostname=NULL)
+	int uid
+	int gid
+	char * hostname
+	CODE:
+	{
+#ifndef NO_RPC
+          if ((uid == -1) && (gid == -1) && (hostname==NULL)) {
+            /* reset to default values */
+            quota_rpc_auth.uid = uid;
+            quota_rpc_auth.gid = gid;
+            quota_rpc_auth.hostname[0] = 0;
+            RETVAL = 0;
+
+          } else {
+            if (uid == -1)
+              quota_rpc_auth.uid = getuid();
+            else
+              quota_rpc_auth.uid = uid;
+
+            if (gid == -1)
+              quota_rpc_auth.gid = getgid();
+            else
+              quota_rpc_auth.gid = gid;
+
+            if (hostname == NULL) {
+              RETVAL = gethostname(quota_rpc_auth.hostname, MAX_MACHINE_NAME);
+            } else if (strlen(hostname) < MAX_MACHINE_NAME) {
+              strcpy(quota_rpc_auth.hostname, hostname);
+              RETVAL = 0;
+            } else {
+              errno = EINVAL;
+              RETVAL = -1;
+            }
+          }
+#endif
+	}
+	OUTPUT:
+	RETVAL
 
 int
 setmntent()

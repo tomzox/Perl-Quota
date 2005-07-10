@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.5.0
-Date:      November 2004
+Version:   1.5.1
+Date:      July 2005
 DSLI-code: Rdcf
            - stable release
            - support by developer
@@ -174,6 +174,12 @@ DESCRIPTION
          the remote host is used (i.e. default port is 0,
          protocol is UDP)  The default timeout is 4 seconds.
 
+     Quota::rpcauth($uid,$gid,$hostname)
+        Configure authorization parameters for subsequent 
+        RPC queries; all parameters are optional. By default 
+        uid and gid are taken from owner of the process and 
+        hostname is the host name of current machine.
+    
      $arg = Quota::getqcarg($path)
          Get the required $dev argument for Quota::query and
          Quota::setqlim for the file system you want to operate

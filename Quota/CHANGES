@@ -1,3 +1,10 @@
+Changes in 1.5.1 (July 2005)
+- Added new API function rpcauth: use non-default authentication for RPC
+  Patch submitted by Karol Lassak
+- Makefile fix for Linux: compile linuxapi.c with default CFLAGS
+  because for 64-bit systems -fPIC is required.  Patches submitted
+  by David Lee and James Olin Oden; used a different solution though.
+
 Changes in 1.5.0 (Nov 2004)
 - Added new API function rpcpeer: set port and protocol for RPC queries.
   On request by Sten Spans (sten@blinkenlights.nl)
