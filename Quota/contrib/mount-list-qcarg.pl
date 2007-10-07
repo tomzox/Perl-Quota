@@ -13,6 +13,8 @@ if(!Quota::setmntent()) {
 }
 Quota::endmntent();
 
+print Quota::getqcargtype() ."\n\n";
+
 foreach (@Mtab)
 {
    $path = (split(/#/))[2];

@@ -1,4 +1,16 @@
 #!../../../perl
+# ------------------------------------------------------------------------ #
+# Interactive test and demo script for the Perl Quota extension module
+#
+# Author: Tom Zoerner 1995-2005
+#
+# This program (test.pl) is in the public domain and can be used and
+# redistributed without restrictions.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# ------------------------------------------------------------------------ #
 
 use blib;
 use Quota;

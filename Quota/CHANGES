@@ -1,3 +1,15 @@
+Changes in 1.5.2 (October 2007)
+- Added support for new quotactl() parameters in JFS2 on AIX 5.3.
+  Thanks to Joshua Frigerio (joshua@uic.edu) for providing a development
+  account.  (Note: also prepared support for JFS2 quota classes; this is
+  yet unfinished and untested. See sub-directory contrib/aix_jfs2_class)
+- Added support for XFS project quotas on request of
+  Sten Spans (sten@blinkenlights.nl); received no feedback it if works.
+  Changed the "isgrp" param to Quota::query() and setqlim() from boolean
+  into an enum: 0:=user, 1:=group, 2:=project quotas.
+- Added a copyright notice to the main module and the manual page on
+  request of the Debian maintainer.
+
 Changes in 1.5.1 (July 2005)
 - Added new API function rpcauth: use non-default authentication for RPC
   Patch submitted by Karol Lassak

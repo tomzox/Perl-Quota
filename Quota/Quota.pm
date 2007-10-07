@@ -1,3 +1,18 @@
+# ------------------------------------------------------------------------ #
+# Quota.pm - Copyright (C) 1995-2007 Tom Zoerner
+# ------------------------------------------------------------------------ #
+# This program is free software: you can redistribute it and/or modify
+# it either under the terms of the Perl Artistic License or the GNU
+# General Public License as published by the Free Software Foundation.
+# (Either version 2 of the GPL, or any later version.)
+# For a copy of these licenses see <http://www.opensource.org/licenses/>.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# Perl Artistic License or GNU General Public License for more details.
+# ------------------------------------------------------------------------ #
+
 package Quota;
 
 require Exporter;
@@ -72,6 +87,7 @@ sub getqcarg {
               defined($fsupp) && ($fsupp =~ /,VXFS/)) { $ret = "(VXFS)$ret" }
         elsif((($fstyp eq "afs") || ($fsname eq "AFS")) &&
               ($fsupp =~ /,AFS/)) { $ret = "(AFS)$target"; }
+        if   (($fstyp eq "jfs2") && ($fsupp =~ /,JFS2/)) { $ret = "(JFS2)$ret" }
         last;
       }
     }
@@ -90,7 +106,7 @@ sub strerr {
   my($str);
 
   eval {
-    if(($! == &EINVAL) || ($! == &ENOTTY) || ($! == &ENOENT))
+    if(($! == &EINVAL) || ($! == &ENOTTY) || ($! == &ENOENT) || ($! == ENOSYS))
                          { $str = "No quotas on this system" }
     elsif($! == &ENODEV) { $str = "Not a standard file system" }
     elsif($! == &EPERM)  { $str = "Not privileged" }
@@ -120,7 +136,7 @@ Quota - Perl interface to file system quotas
 
     ($block_curr, $block_soft, $block_hard, $block_timelimit,
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
-    Quota::query($dev [,$uid [,isgrp]]);
+    Quota::query($dev [,$uid [,kind]]);
 
     ($block_curr, $block_soft, $block_hard, $block_timelimit,
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
@@ -131,7 +147,7 @@ Quota - Perl interface to file system quotas
     Quota::rpcauth([$uid [,$gid [,$hostname]]]);
 
     Quota::setqlim($dev, $uid, $block_soft, $block_hard,
-		   $inode_soft, $inode_hard [,$tlo [,isgrp]]);
+		   $inode_soft, $inode_hard [,$tlo [,kind]]);
 
     Quota::sync([$dev]);
 
@@ -154,7 +170,7 @@ implementations needs as argument) of the according file system.
 
 =over 4
 
-=item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $isgrp)>
+=item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $kind)>
 
 Get current usage and quota limits for a given file system and user.
 The user is specified by its numeric uid; defaults to the process'
@@ -187,13 +203,15 @@ limits are zero, there is no limit for that user. On most
 systems Quota::query will return undef in that case and
 errno will be set to ESRCH.
 
-When I<$isgrp> is given and set to 1, I<$uid> is taken as gid and
+When I<$kind> is given and set to 1, I<$uid> is taken as gid and
 group quotas are queried. This is B<not> supported across RPC and
 even locally only on a few architectures (e.g. Linux and other BSD
 based Unix variants, OSF/1 and  AIX - check the quotactl(2) man page
-on your systems). If unsupported, this flag is ignored.
+on your systems). When I<$kind> is set to 2, project quotas are
+queried; this is currently only supported for XFS.  When unsupported,
+this flag is ignored.
 
-=item I<Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $isgrp)>
+=item I<Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $kind)>
 
 Sets quota limits for the given user. Meanings of I<$dev>, I<$uid>,
 I<$bs>, I<$bh>, I<$is> and I<$ih> are the same as in B<Quota::query>.
@@ -206,9 +224,11 @@ I<1>: The time limits are set to B<7.0 days>.
 More alternatives (i.e. setting a specific time) aren't available in
 most implementations.
 
-When I<$isgrp> is given and set to 1, I<$uid> is taken as gid and
+When I<$kind> is given and set to 1, I<$uid> is taken as gid and
 group quota limits are set. This is supported only on a few
-architectures (see above). If unsupported, this flag is ignored.
+architectures (see above).When I<$kind> is set to 2, project quotas
+are modified; this is currently only supported for XFS.
+When unsupported, this flag is ignored.
 
 Note: if you want to set the quota of a particular user to zero, i.e.
 no write permission, you must not set all limits to zero, since that
@@ -313,6 +333,8 @@ don't always make sense for quota errors
 Note that this function only returns a defined result if you called a
 Quota command directly before which returned an error indication.
 
+=back
+
 =head1 RETURN VALUES
 
 Functions that are supposed return lists or scalars, return I<undef> upon
@@ -344,6 +366,13 @@ and since then continually improved and ported to
 many operating- and file-systems. Numerous people
 have contributed to this process; for a complete
 list of names please see the CHANGES document.
+
+The quota module was in the public domain 1995-2001. Since 2001 it is
+licensed under both the Perl Artistic License and version 2 or later of the
+GNU General Public License as published by the Free Software Foundation.
+For a copy of these licenses see <http://www.opensource.org/licenses/>.
+The respective authors of the source code are it's owner in regard to
+copyright.
 
 =head1 SEE ALSO
 

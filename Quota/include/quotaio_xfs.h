@@ -37,6 +37,11 @@
 #define XQM_CMD(cmd)    ( ('X'<<8)+(cmd) )
 #define IS_XQM_CMD(cmd) ( ((int)(cmd)>>8) == 'X' )
 
+#define XQM_USRQUOTA    0       /* system call user quota type */
+#define XQM_GRPQUOTA    1       /* system call group quota type */
+#define XQM_PRJQUOTA    2       /* system call project quota type */
+#define XQM_MAXQUOTAS   3
+
 /*
  * Disk quota - quotactl(2) commands for XFS Quota Manager (XQM).
  */

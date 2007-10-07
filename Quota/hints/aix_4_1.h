@@ -20,11 +20,17 @@
 #include "include/rquota.h"
 
 #include <jfs/quota.h>
+#include <sys/statfs.h>
 #include <sys/mntctl.h>
 #include <sys/vmount.h>
 
 #define AIX
 #define Q_CTL_V2
+
+#if defined(_AIXVERSION_530)
+#include "j2/j2_quota.h"
+#define HAVE_JFS2
+#endif
 
 #define Q_DIV(X) (X)
 #define Q_MUL(X) (X)

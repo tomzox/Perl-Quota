@@ -270,10 +270,10 @@ MODULE = Quota  PACKAGE = Quota
 PROTOTYPES: DISABLE
 
 void
-query(dev,uid=getuid(),isgrp=0)
+query(dev,uid=getuid(),kind=0)
 	char *	dev
 	int	uid
-	int     isgrp
+	int     kind
 	PPCODE:
 	{
 	  struct dqblk dqblk;
@@ -289,7 +289,7 @@ query(dev,uid=getuid(),isgrp=0)
 #ifndef linux
 	    err = quotactl(Q_XGETQUOTA, dev+5, uid, CADR &xfs_dqblk);
 #else
-	    err = quotactl(QCMD(Q_XGETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev+5, uid, CADR &xfs_dqblk);
+	    err = quotactl(QCMD(Q_XGETQUOTA, ((kind == 2) ? XQM_PRJQUOTA : ((kind == 1) ? XQM_GRPQUOTA : XQM_USRQUOTA))), dev+5, uid, CADR &xfs_dqblk);
 #endif
 	    if(!err) {
 	      EXTEND(sp, 8);
@@ -367,16 +367,39 @@ query(dev,uid=getuid(),isgrp=0)
 		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
 #else /* not USE_IOCTL */
 #ifdef Q_CTL_V3  /* Linux */
-	      err = linuxquota_query(dev, uid, isgrp, &dqblk);
+	      err = linuxquota_query(dev, uid, (kind != 0), &dqblk);
 #else /* not Q_CTL_V3 */
 #ifdef Q_CTL_V2
 #ifdef AIX
               /* AIX quotactl doesn't fail if path does not exist!? */
               struct stat st;
-	      if (stat(dev, &st)) err = 1;
-	      else
-#endif
-	      err = quotactl(dev, QCMD(Q_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
+#if defined(HAVE_JFS2)
+              if (strncmp(dev, "(JFS2)", 6) == 0) {
+                if (stat(dev + 6, &st)) {
+		  err = 1;
+                }
+		else {
+		  quota64_t user_quota;
+
+		  err = quotactl(dev + 6, QCMD(Q_J2GETQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)),
+                                 uid, CADR &user_quota);
+		  dqblk.dqb_curblocks  = user_quota.bused;
+		  dqblk.dqb_bsoftlimit = user_quota.bsoft;
+		  dqblk.dqb_bhardlimit = user_quota.bhard;
+		  dqblk.dqb_ihardlimit = user_quota.ihard;
+		  dqblk.dqb_isoftlimit = user_quota.isoft;
+		  dqblk.dqb_curinodes = user_quota.iused;
+		  dqblk.dqb_btime = user_quota.btime;
+		  dqblk.dqb_itime = user_quota.itime;
+		}
+              }
+#endif /* HAVE_JFS2 */
+              else if (stat(dev, &st)) {
+                err = 1;
+              }
+              else
+#endif /* AIX */
+	      err = quotactl(dev, QCMD(Q_GETQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
 #else /* not Q_CTL_V2 */
 	      err = quotactl(Q_GETQUOTA, dev, uid, CADR &dqblk);
 #endif /* not Q_CTL_V2 */
@@ -401,7 +424,7 @@ query(dev,uid=getuid(),isgrp=0)
         }
 
 int
-setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
+setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
 	char *	dev
 	int	uid
 	int	bs
@@ -409,7 +432,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	int	fs
 	int	fh
 	int	timelimflag
-	int     isgrp
+	int     kind
 	CODE:
 	{
 	  struct dqblk dqblk;
@@ -437,7 +460,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 #ifndef linux
 	    RETVAL = quotactl(Q_XSETQLIM, dev+5, uid, CADR &xfs_dqblk);
 #else
-	    RETVAL = quotactl(QCMD(Q_XSETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)), dev+5, uid, CADR &xfs_dqblk);
+	    RETVAL = quotactl(QCMD(Q_XSETQLIM, ((kind == 2) ? XQM_PRJQUOTA : ((kind == 1) ? XQM_GRPQUOTA : XQM_USRQUOTA))), dev+5, uid, CADR &xfs_dqblk);
 #endif
 	  }
 	  else
@@ -468,6 +491,25 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	  }
 	  else
 #endif
+#if defined(HAVE_JFS2)
+          if(strncmp(dev, "(JFS2)", 6) == 0) {
+            quota64_t user_quota;
+
+            RETVAL = quotactl(dev + 6, QCMD(Q_J2GETQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)),
+                              uid, CADR &user_quota);
+            if (RETVAL == 0) {
+              user_quota.bsoft = bs;
+              user_quota.bhard = bh;
+              user_quota.btime = timelimflag;
+              user_quota.isoft = fs;
+              user_quota.ihard = fh;
+              user_quota.itime = timelimflag;
+              RETVAL = quotactl(dev + 6, QCMD(Q_J2PUTQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)),
+                                uid, CADR &user_quota);
+            }
+          }
+          else
+#endif /* HAVE_JFS2 */
 	  {
 	    dqblk.QS_BSOFT = Q_MUL(bs);
 	    dqblk.QS_BHARD = Q_MUL(bh);
@@ -484,10 +526,10 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,isgrp=0)
 	      RETVAL = -1;
 #else
 #ifdef Q_CTL_V3  /* Linux */
-	    RETVAL = linuxquota_setqlim (dev, uid, isgrp, &dqblk);
+	    RETVAL = linuxquota_setqlim (dev, uid, (kind != 0), &dqblk);
 #else
 #ifdef Q_CTL_V2
-	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,(isgrp ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
+	    RETVAL = quotactl (dev, QCMD(Q_SETQUOTA,((kind != 0) ? GRPQUOTA : USRQUOTA)), uid, CADR &dqblk);
 #else
 	    RETVAL = quotactl (Q_SETQLIM, dev, uid, CADR &dqblk);
 #endif
@@ -573,6 +615,9 @@ sync(dev=NULL)
 #endif
 	  if(dev == NULL) dev = "/";
 #ifdef AIX
+#if defined(HAVE_JFS2)
+          if (strncmp(dev, "(JFS2)", 6) == 0) dev += 6;
+#endif
 	  if (stat(dev, &st)) RETVAL = -1;
 	  else
 #endif
@@ -712,11 +757,11 @@ setmntent()
 	  int count, space;
 
           if(mtab != NULL) free(mtab);
-	  count = mntctl(MCTL_QUERY, sizeof(space), (struct vmount *) &space);
+	  count = mntctl(MCTL_QUERY, sizeof(space), (char *) &space);
 	  if (count == 0) {
 	    mtab = (struct vmount *) malloc(space);
 	    if (mtab != NULL) {
-	      count = mntctl(MCTL_QUERY, space, mtab);
+	      count = mntctl(MCTL_QUERY, space, (char *) mtab);
 	      if (count > 0) {
 	        aix_mtab_count = count;
 	        aix_mtab_idx   = 0;
@@ -839,10 +884,17 @@ getmntent()
 	    PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));
 
 	    switch(vmp->vmt_gfstype) {
-	      case MNT_AIX:   cp = "aix"; break;
 	      case MNT_NFS:   cp = "nfs"; break;
 	      case MNT_NFS3:  cp = "nfs"; break;
 	      case MNT_JFS:   cp = "jfs"; break;
+#if defined(MNT_AIX) && defined(MNT_J2) && (MNT_AIX==MNT_J2)
+	      case MNT_J2:    cp = "jfs2"; break;
+#else
+#if defined(MNT_J2)
+	      case MNT_J2:    cp = "jfs2"; break;
+#endif
+	      case MNT_AIX:   cp = "aix"; break;
+#endif
 	      case 4:         cp = "afs"; break;
 	      case MNT_CDROM: cp = "cdrom,ignore"; break;
 	      default:        cp = "unknown,ignore"; break;
@@ -883,17 +935,21 @@ getqcargtype()
 #if defined(USE_IOCTL) || defined(QCARG_MNTPT)
 	strcpy(ret, "mntpt");
 #else
+#if defined(HAVE_JFS2)
+	strcpy(ret, "any,JFS2");
+#else
 #if defined(AIX) || defined(OSF_QUOTA)
 	strcpy(ret, "any");
 #else
 #ifdef Q_CTL_V2
 	strcpy(ret, "qfile");
 #else
+/* this branch applies to Q_CTL_V3 (Linux) too */
 #ifdef SGI_XFS
 	strcpy(ret, "dev,XFS");
 #else
-/* this branch applies to Q_CTL_V3 (Linux) too */
 	strcpy(ret, "dev");
+#endif
 #endif
 #endif
 #endif
@@ -907,3 +963,4 @@ getqcargtype()
         RETVAL = ret;
 	OUTPUT:
 	RETVAL
+

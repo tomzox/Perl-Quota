@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.5.1
-Date:      July 2005
+Version:   1.5.2
+Date:      October 2007
 DSLI-code: Rdcf
            - stable release
            - support by developer
@@ -22,7 +22,7 @@ Supported: SunOS 4.1.3,
 	   VxFS (Veritas File System) on Solaris 2.
 Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 Author:    TOMZO  (Tom Zoerner)
-License:   Same as Perl: Artistic License or GPL;
+License:   Same as Perl: Artistic License or GPL version 2 or later;
            See also http://www.opensource.org/licenses/
 
 Documentation is in pod format at the end of Quota.pm,
@@ -272,6 +272,13 @@ AUTHORS
      many operating- and file-systems. Numerous people
      have contributed to this process; for a complete
      list of names please see the CHANGES document.
+
+     The quota module was in the public domain 1995-2001. Since 2001
+     it is licensed under both the Perl Artistic License and version 2
+     or later of the GNU General Public License as published by the
+     Free Software Foundation.  For a copy of these licenses see
+     <http://www.opensource.org/licenses/>.  The respective authors
+     of the source code are it's owner in regard to copyright.
 
 SEE ALSO
      perl(1), edquota(1m), quotactl(2) or quotactl(7I),
