@@ -6,14 +6,14 @@ use Quota;
 my($fsname,$path,$fstyp);
 
 if(!Quota::setmntent()) {
-   while(($fsname,$path,$fstyp) = Quota::getmntent())
+   while(($fsname,$path,$fstyp,$opt) = Quota::getmntent())
    {
-      push(@Mtab, "#$fsname#$path#$fstyp#");
+      push(@Mtab, "#$fsname#$path#$fstyp#$opt#");
    }
 }
 Quota::endmntent();
 
-print Quota::getqcargtype() ."\n\n";
+print "Quota arg type=". Quota::getqcargtype() ."\n\n";
 
 foreach (@Mtab)
 {

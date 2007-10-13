@@ -22,7 +22,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.5.1';
+$VERSION = '1.6.0';
 
 bootstrap Quota;
 
@@ -65,20 +65,30 @@ sub getqcarg {
   my($dev) = (stat($target))[0];
   my($ret) = undef;
   my($argtyp,$fsupp) = (Quota::getqcargtype() =~ /([^,]*)(,.*)?/);
-  my($fsname,$path,$fstyp);
+  my($fsname,$path,$fstyp,$fsopt);
 
   if(defined($dev) && ($target ne "") && !Quota::setmntent()) {
-    while(($fsname,$path,$fstyp) = Quota::getmntent()) {
+    while(($fsname,$path,$fstyp,$fsopt) = Quota::getmntent()) {
       next if $fstyp =~ /^(lofs|ignore|auto.*|proc)$/;
       my($pdev) = (stat($path))[0];
       if (defined($pdev) && ($dev == $pdev)) {
-	if($fsname =~ m|^[^/]+:/|) { $ret = $fsname }   #NFS host:/path
-        elsif (($fstyp =~ /^nfs/i) && ($fsname =~ m#^(/.*)\@([^/]+)$#))
-                                   { $ret = "$2:$1" }   #NFS /path@host
-	elsif($argtyp eq "dev")    { $ret = $fsname }
-	elsif($argtyp eq "qfile")  { $ret = "$path/quotas" }
-	elsif($argtyp eq "any")    { $ret = $target }
-	else                       { $ret = $path }     #($argtyp eq "mntpt")
+        if ($fsname =~ m|^[^/]+:/|) {
+          $ret = $fsname;  #NFS host:/path
+        } elsif (($fstyp =~ /^nfs/i) && ($fsname =~ m#^(/.*)\@([^/]+)$#)) {
+          $ret = "$2:$1";  #NFS /path@host
+        } elsif ($argtyp eq "dev") {
+          if ($fsopt =~ m#(^|,)loop=(/dev/[^,]+)#) {
+            $ret = $2;  # Linux mount -o loop
+          } else {
+            $ret = $fsname;
+          }
+        } elsif ($argtyp eq "qfile") {
+          $ret = "$path/quotas";
+        } elsif ($argtyp eq "any") {
+          $ret = $target;
+        } else { #($argtyp eq "mntpt")
+          $ret = $path;
+        }
 
         # XFS, VxFS and AFS quotas require separate access methods
         # (optional for VxFS: later versions use 'normal' quota interface)
@@ -147,7 +157,7 @@ Quota - Perl interface to file system quotas
     Quota::rpcauth([$uid [,$gid [,$hostname]]]);
 
     Quota::setqlim($dev, $uid, $block_soft, $block_hard,
-		   $inode_soft, $inode_hard [,$tlo [,kind]]);
+                   $inode_soft, $inode_hard [,$tlo [,kind]]);
 
     Quota::sync([$dev]);
 
@@ -226,8 +236,8 @@ most implementations.
 
 When I<$kind> is given and set to 1, I<$uid> is taken as gid and
 group quota limits are set. This is supported only on a few
-architectures (see above).When I<$kind> is set to 2, project quotas
-are modified; this is currently only supported for XFS.
+architectures (see above). When I<$kind> is set to 2, project
+quotas are modified; this is currently only supported for XFS.
 When unsupported, this flag is ignored.
 
 Note: if you want to set the quota of a particular user to zero, i.e.

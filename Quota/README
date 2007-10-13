@@ -3,27 +3,28 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (email: tomzo AT nefkom DOT net)
 
-Version:   1.5.2
+Version:   1.6.0
 Date:      October 2007
-DSLI-code: Rdcf
+DLSIP-Code:Rcdfg
            - stable release
-           - support by developer
            - C compiler required for installation
+           - support by developer
            - plain functions, no references used
+           - licensed under the Perl Artistic License or
+             (at your option) version 2 or later of the
+             GNU General Public License
+Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
+
 Supported: SunOS 4.1.3,
-           Solaris 2.4 & 2.5 & 2.6,
+           Solaris 2.4 & 2.5 & 2.6 & 2.8,
            HP-UX 9.0x & 10.10 & 10.20 & 11.00,
            IRIX 5.2 & 5.3 & 6.2 - 6.5,
            OSF/1 & Digital Unix 4,
            BSDi 2, FreeBSD 3, OpenBSD & NetBSD (no RPC),
-           Linux - kernel 2.0.30 and later, incl. Quota API v2,
-           AIX 4.1 & 4.2.
+           Linux - kernel 2.0.30 and later, incl. Quota API v2 and XFS,
+           AIX 4.1, 4.2 and 5.3.
            AFS (Andrew File System) on many of the above (see INSTALL),
 	   VxFS (Veritas File System) on Solaris 2.
-Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
-Author:    TOMZO  (Tom Zoerner)
-License:   Same as Perl: Artistic License or GPL version 2 or later;
-           See also http://www.opensource.org/licenses/
 
 Documentation is in pod format at the end of Quota.pm,
 installation hints are in a file named INSTALL inside this package.
@@ -44,7 +45,7 @@ SYNOPSIS
 
          ($block_curr, $block_soft, $block_hard, $block_timelimit,
           $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
-         Quota::query($dev [,$uid [,isgrp]]);
+         Quota::query($dev [,$uid [,kind]]);
 
          ($block_curr, $block_soft, $block_hard, $block_timelimit,
           $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
@@ -53,7 +54,7 @@ SYNOPSIS
          Quota::rpcpeer([$port [,$use_tcp [,timeout]]]);
 
          Quota::setqlim($dev, $uid, $block_soft, $block_hard,
-                        $inode_soft, $inode_hard [,$tlo [,isgrp]]);
+                        $inode_soft, $inode_hard [,$tlo [,kind]]);
 
          Quota::sync([$dev]);
 
@@ -75,7 +76,7 @@ DESCRIPTION
 
      Functions
 
-     ($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $isgrp)
+     ($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) = Quota::query($dev, $uid, $kind)
          Get current usage and quota limits for a given file
          system and user.  The user is specified by its numeric
          uid; defaults to the process' real uid.
@@ -112,14 +113,15 @@ DESCRIPTION
 	 systems Quota::query will return undef in that case and
 	 errno will be set to ESRCH.
 
-         When $isgrp is given and set to 1, $uid is taken as gid
+         When $kind is given and set to 1, $uid is taken as gid
          and group quotas are queried. This is not supported across
          RPC and even locally only on a few architectures (e.g. Linux
          and other BSD based Unix variants, OSF/1 and AIX - check the
-         quotactl(2) man page on your systems). If unsupported, this
-         flag is ignored.
+         quotactl(2) man page on your systems).  When $kind is set
+         to 2, project quotas are queried; this is currently only
+         supported for XFS.  When unsupported, this flag is ignored.
 
-     Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $isgrp)
+     Quota::setqlim($dev, $uid, $bs,$bh, $is,$ih, $tlo, $kind)
          Sets quota limits for the given user. Meanings of $dev,
          $uid, $bs, $bh, $is and $ih are the same as in
          Quota::query.
@@ -131,10 +133,11 @@ DESCRIPTION
          are set to 7.0 days.  More alternatives (i.e. setting a
          specific time) aren't available in most implementations.
 
-         When $isgrp is given and set to 1, $uid is taken as gid
+         When $kind is given and set to 1, $uid is taken as gid
          and group quota limits are set. This is supported only on a
-         few architectures (see above). If unsupported, this flag
-         is ignored.
+         few architectures (see above).  When I<$kind> is set to 2,
+         project quotas are modified; this is currently only supported
+         for XFS.  When unsupported, this flag is ignored.
 
          Note: if you want to set the quota of a particular user
          to zero, i.e.  no write permission, you must not set all

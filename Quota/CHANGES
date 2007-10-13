@@ -1,3 +1,8 @@
+Changes in 1.6.0 (October 2007)
+- Work-around for different getmntent() semantics for linux loop mounts
+  Thanks Wouter de Jong (wouter@widexs.nl) for reporting this issue.
+- (late) version bump due to the interface change in 1.5.2
+
 Changes in 1.5.2 (October 2007)
 - Added support for new quotactl() parameters in JFS2 on AIX 5.3.
   Thanks to Joshua Frigerio (joshua@uic.edu) for providing a development
