@@ -1,6 +1,7 @@
 CHANGES
 INSTALL
 MANIFEST
+META.yml
 Makefile.PL
 Quota.pm
 Quota.xs

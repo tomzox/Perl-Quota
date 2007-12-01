@@ -1,6 +1,13 @@
 #!/usr/bin/perl
 #
 # testing group quota support  -tom Apr/02/1999
+#
+# This script is in the public domain and can be used and redistributed
+# without restrictions.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 use blib;
 use Quota;

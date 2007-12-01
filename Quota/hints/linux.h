@@ -85,6 +85,12 @@ int linuxquota_sync( const char * dev, int isgrp );
 /* uncomment this is you're using NFS with a version of the quota tools < 3.0 */
 /* #define LINUX_RQUOTAD_BUG */
 
+/* enable support for extended quota RPC (i.e. quota RPC version 2) */
+/* note: could also be enabled by defining MY_XDR (and including "include/rquota.h") */
+#if defined (EXT_RQUOTAVERS)
+#define USE_EXT_RQUOTA
+#endif
+
 /* optional: for support of SGI XFS file systems - comment out if not needed */
 #define SGI_XFS
 #define QX_DIV(X) ((X) >> 1)

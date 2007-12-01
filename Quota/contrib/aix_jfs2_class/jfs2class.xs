@@ -5,6 +5,17 @@
  * It's just provided as possible basis for further development.
  *
  * Copyright (C) 2007 Tom Zoerner.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it either under the terms of the Perl Artistic License or the GNU
+ * General Public License as published by the Free Software Foundation.
+ * (Either version 2 of the GPL, or any later version.)
+ * For a copy of these licenses see <http://www.opensource.org/licenses/>.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * Perl Artistic License or GNU General Public License for more details.
  */
 
 MODULE = Quota  PACKAGE = Quota::JFS2CLASS

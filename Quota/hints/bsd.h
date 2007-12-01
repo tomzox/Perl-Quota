@@ -18,6 +18,13 @@
 #include <fstab.h>
 #include <ufs/ufs/quota.h>
 
+#if defined(__NetBSD__) && (__NetBSD_Version__ >= 299000900) /* NetBSD 2.99.9 */
+/* NetBSD 3.0 has no statfs anymore */
+#include <sys/types.h>
+#include <sys/statvfs.h>
+#define HAVE_STATVFS
+#endif
+
 #include <rpc/rpc.h>
 #include <rpc/pmap_prot.h>
 #include <rpc/svc.h>
@@ -45,8 +52,12 @@
 
 #define MY_XDR
 
+#if defined (EXT_RQUOTAVERS)
+#define USE_EXT_RQUOTA  /* RPC version 2 aka extended quota RPC */
+#endif
+
 #define NO_MNTENT
- 
+
 #define GQR_STATUS status
 #define GQR_RQUOTA getquota_rslt_u.gqr_rquota
 

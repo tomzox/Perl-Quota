@@ -1,7 +1,7 @@
 /*
  *  Interface to OpenAFS
  *
- *  Copyright 1998,2003 Wolfgang Friebel <friebel@ifh.de>
+ *  Contributed 1998,2003 by Wolfgang Friebel <friebel@ifh.de>
  */
 
 #if defined( __hpux)

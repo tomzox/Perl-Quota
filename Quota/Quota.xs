@@ -28,10 +28,14 @@ extern "C" {
 #ifndef AIX
 #ifndef NO_MNTENT
 FILE *mtab = NULL;
+#else /* NO_MNTENT */
+#ifdef HAVE_STATVFS
+struct statvfs *mntp, *mtab = NULL;
 #else
 struct statfs *mntp, *mtab = NULL;
-int mtab_size = 0;
 #endif
+int mtab_size = 0;
+#endif /* NO_MNTENT */
 #else /* AIX */
 static struct vmount *mtab = NULL;
 static aix_mtab_idx, aix_mtab_count;
@@ -126,20 +130,43 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
 }
 
 int
-getnfsquota(hostp, fsnamep, uid, dqp)
+getnfsquota(hostp, fsnamep, uid, kind, dqp)
   char *hostp, *fsnamep;
   int uid;
+  int kind;
   struct dqblk *dqp;
 {
   struct getquota_args gq_args;
   struct getquota_rslt gq_rslt;
+#ifdef USE_EXT_RQUOTA
+  ext_getquota_args ext_gq_args;
 
-  gq_args.gqa_pathp = fsnamep;
-  gq_args.gqa_uid = uid;
-  if (callaurpc(hostp, RQUOTAPROG, RQUOTAVERS, RQUOTAPROC_GETQUOTA,
-      xdr_getquota_args, &gq_args, xdr_getquota_rslt, &gq_rslt) != 0) {
-    return (-1);
+  /*
+   * First try USE_EXT_RQUOTAPROG (Extended quota RPC)
+   */
+  ext_gq_args.gqa_pathp = fsnamep;
+  ext_gq_args.gqa_id = uid;
+  ext_gq_args.gqa_type = ((kind != 0) ? GRPQUOTA : USRQUOTA);
+
+  if (callaurpc(hostp, RQUOTAPROG, EXT_RQUOTAVERS, RQUOTAPROC_GETQUOTA,
+                xdr_ext_getquota_args, &ext_gq_args,
+                xdr_getquota_rslt, &gq_rslt) != 0)
+#endif
+  {
+     /*
+      * Fall back to RQUOTAPROG if the server (or client via compile switch)
+      * don't support extended quota RPC
+      */
+     gq_args.gqa_pathp = fsnamep;
+     gq_args.gqa_uid = uid;
+
+     if (callaurpc(hostp, RQUOTAPROG, RQUOTAVERS, RQUOTAPROC_GETQUOTA,
+                   xdr_getquota_args, &gq_args,
+                   xdr_getquota_rslt, &gq_rslt) != 0) {
+       return (-1);
+     }
   }
+
   switch (gq_rslt.GQR_STATUS) {
   case Q_OK:
     {
@@ -257,8 +284,21 @@ struct rquota *rqp;
       xdr_u_long(xdrs, (unsigned long *)&rqp->rq_btimeleft) &&
       xdr_u_long(xdrs, (unsigned long *)&rqp->rq_ftimeleft) );
 }
-#endif
-#endif
+#endif /* MY_XDR */
+
+#ifdef USE_EXT_RQUOTA
+bool_t
+xdr_ext_getquota_args(xdrs, objp)
+XDR *xdrs;
+ext_getquota_args *objp;
+{
+  return xdr_string(xdrs, &objp->gqa_pathp, RQ_PATHLEN) &&
+         xdr_int(xdrs, &objp->gqa_type) &&
+         xdr_int(xdrs, &objp->gqa_id);
+}
+#endif /* USE_EXT_RQUOTA */
+
+#endif /* !NO_RPC */
 
 /* -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
  *
@@ -351,7 +391,7 @@ query(dev,uid=getuid(),kind=0)
 	    if((*dev != '/') && (p = strchr(dev, ':'))) {
 #ifndef NO_RPC
 	      *p = '\0';
-	      err = getnfsquota(dev, p+1, uid, &dqblk);
+              err = getnfsquota(dev, p+1, uid, kind, &dqblk);
 	      *p = ':';
 #else /* NO_RPC */
 	      errno = ENOSYS;
@@ -648,16 +688,18 @@ sync(dev=NULL)
 	OUTPUT:
 	RETVAL
 
-void
-rpcquery(host,path,uid=getuid())
+
+void 
+rpcquery(host,path,uid=getuid(),kind=0)
 	char *	host
 	char *	path
 	int	uid
+	int     kind
 	PPCODE:
 	{
 #ifndef NO_RPC
 	  struct dqblk dqblk;
-	  if(getnfsquota(host, path, uid, &dqblk) == 0) {
+          if (getnfsquota(host, path, uid, kind, &dqblk) == 0) {
 	    EXTEND(sp, 8);
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
@@ -745,7 +787,7 @@ setmntent()
 	    RETVAL = -1;
 	  else
 	    RETVAL = 0;
-#else
+#else /* NO_MNTENT */
 	  /* if(mtab != NULL) free(mtab); */
 	  if((mtab_size = getmntinfo(&mtab, MNT_NOWAIT)) <= 0)
 	    RETVAL = -1;
@@ -806,7 +848,7 @@ getmntent()
 	  }
 	  else
 	    errno = EBADF;
-#else
+#else /* NO_OPEN_MNTTAB */
 	  struct mnttab mntp;
 	  if(mtab != NULL) {
 	    if(getmntent(mtab, &mntp) == 0)  {
@@ -820,7 +862,7 @@ getmntent()
 	  else
 	    errno = EBADF;
 #endif
-#else
+#else /* NO_MNTENT */
 #ifdef OSF_QUOTA
           char *fstype = getvfsbynumber((int)mntp->f_type);
 #endif
@@ -833,13 +875,21 @@ getmntent()
               PUSHs(sv_2mortal(newSVpv(fstype, strlen(fstype))));
             else
 #endif
-#ifndef __OpenBSD__
-              PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
-#else
+#ifdef __OpenBSD__
               /* OpenBSD struct statfs lacks the f_type member (starting with release 2.7) */
-              PUSHs(sv_2mortal(newSViv((IV)"")));
-#endif
+              PUSHs(sv_2mortal(newSVpv("", 0)));
+#else /* !__OpenBSD__ */
+#ifdef HAVE_STATVFS
+              PUSHs(sv_2mortal(newSVpv(mntp->f_fstypename, strlen(mntp->f_fstypename))));
+#else
+              PUSHs(sv_2mortal(newSViv((IV)mntp->f_type)));
+#endif /* HAVE_STATVFS */
+#endif /* !__OpenBSD__ */
+#ifdef HAVE_STATVFS
+	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_flag)));
+#else
 	    PUSHs(sv_2mortal(newSViv((IV)mntp->f_flags)));
+#endif
 	    mtab_size--;
 	    mntp++;
 	  }

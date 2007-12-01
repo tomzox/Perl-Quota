@@ -1,4 +1,16 @@
 #!/usr/bin/perl
+# ------------------------------------------------------------------------ #
+# Interactive test and demo script for the AFS JFS Quota Class Interface
+#
+# Author: Tom Zoerner, 2007
+#
+# This program (test_jfs.pl) is in the public domain and can be used and
+# redistributed without restrictions.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+# ------------------------------------------------------------------------ #
 
 use blib;
 use Quota;

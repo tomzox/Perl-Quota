@@ -1,3 +1,8 @@
+Changes in 1.6.1 (November 2007)
+- Adapted hints/bsd.h to use statvfs instead of statfs in NetBSD 3.0
+- Added support for extended quota RPC to allow querying group quotas.
+  Thanks to Kostik (koc AT rol.ru) for the suggestion.
+
 Changes in 1.6.0 (October 2007)
 - Work-around for different getmntent() semantics for linux loop mounts
   Thanks Wouter de Jong (wouter@widexs.nl) for reporting this issue.

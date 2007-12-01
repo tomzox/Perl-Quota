@@ -22,7 +22,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.6.0';
+$VERSION = '1.6.1';
 
 bootstrap Quota;
 
@@ -150,7 +150,7 @@ Quota - Perl interface to file system quotas
 
     ($block_curr, $block_soft, $block_hard, $block_timelimit,
      $inode_curr, $inode_soft, $inode_hard, $inode_timelimit) =
-    Quota::rpcquery($host, $path [,$uid]);
+    Quota::rpcquery($host, $path [,$uid [,kind]]);
 
     Quota::rpcpeer([$port [,$use_tcp [,timeout]]]);
     
@@ -263,12 +263,15 @@ This is not a bug in this module; it's a limitation in certain kernels.
 
 =item I<($bc,$bs,$bh,$bt, $ic,$is,$ih,$it) =>
 
-I<Quota::rpcquery($host,$path,$uid)>
+I<Quota::rpcquery($host,$path,$uid,$kind)>
 
-This is equivalent to B<Quota::query("$host:$path",$uid)>, i.e.
+This is equivalent to B<Quota::query("$host:$path",$uid,$kind)>, i.e.
 query quota for a given user on a given remote host via RPC.
-I<$path> is the path of any file or directory inside the wanted
-file system on the remote host.
+I<$path> is the path of any file or directory inside the
+file system on the remote host.  Querying group quotas ($kind = 1)
+is only recently supported on some platforms (e.g. on linux via
+"extended" quota RPC, i.e. quota RPC version 2) so it may fail due
+to lack of support either on client or server side, or both.
 
 =item I<Quota::rpcpeer($port,$use_tcp,timeout)>
 
@@ -371,7 +374,7 @@ see INSTALL.
 =head1 AUTHORS
 
 This module was created 1995 by Tom Zoerner
-(email: tomzo AT nefkom DOT net)
+(email: tomzo AT users.sourceforge.net)
 and since then continually improved and ported to
 many operating- and file-systems. Numerous people
 have contributed to this process; for a complete
