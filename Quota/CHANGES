@@ -1,3 +1,7 @@
+Changes in 1.6.2 (January 2008)
+- Fixed memory leak in RPC authentication
+  Thanks again to Kostik (koc at rol.ru)
+
 Changes in 1.6.1 (November 2007)
 - Adapted hints/bsd.h to use statvfs instead of statfs in NetBSD 3.0
 - Added support for extended quota RPC to allow querying group quotas.

@@ -1,7 +1,7 @@
 --- #YAML:1.0
 name: Quota
 abstract: Quota - Perl interface to file system quotas
-version: 1.6.1
+version: 1.6.2
 author:
   - Tom Zoerner <tomzo@users.sourceforge.net>
 license: perl
@@ -11,6 +11,6 @@ keywords:
 excludes_os: MSWin32
 no_index:
   directory:
-  - contrib
+    - contrib
 resources:
   license: http://dev.perl.org/licenses/

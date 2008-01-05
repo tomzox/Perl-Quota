@@ -124,7 +124,12 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
   timeout.tv_usec = (quota_rpc_cfg.timeout % 1000) * 1000;
   clnt_stat = clnt_call(client, procnum,
                         inproc, in, outproc, out, timeout);
-  if (client) clnt_destroy(client);
+
+  if (client->cl_auth) {
+    auth_destroy(client->cl_auth);
+    client->cl_auth = NULL;
+  }
+  clnt_destroy(client);
 
   return ((int) clnt_stat);
 }
