@@ -59,17 +59,26 @@ static int kernel_iface = IFACE_UNSET;
 ** This is required to be able to compile with v1 kernel headers.
 */
 
-struct dqblk_v3 {
-  u_int64_t dqb_bhardlimit;
-  u_int64_t dqb_bsoftlimit;
-  u_int64_t dqb_curspace;
-  u_int64_t dqb_ihardlimit;
-  u_int64_t dqb_isoftlimit;
-  u_int64_t dqb_curinodes;
-  u_int64_t dqb_btime;
-  u_int64_t dqb_itime;
-  u_int32_t dqb_valid;
+/*
+** Packed into wrapper for compatibility of 32-bit clients with 64-bit kernels:
+** 64-bit compilers add 4 padding bytes at the end of the struct, so a memcpy
+** corrupts the 4 bytes following the struct in the 32-bit clients userspace
+*/
+union dqblk_v3_wrap {
+  struct dqblk_v3 {
+    u_int64_t dqb_bhardlimit;
+    u_int64_t dqb_bsoftlimit;
+    u_int64_t dqb_curspace;
+    u_int64_t dqb_ihardlimit;
+    u_int64_t dqb_isoftlimit;
+    u_int64_t dqb_curinodes;
+    u_int64_t dqb_btime;
+    u_int64_t dqb_itime;
+    u_int32_t dqb_valid;
+  } dqblk;
+  u_int64_t foo[9];
 };
+
 
 struct dqstats_v2 {
   u_int32_t lookups;
@@ -206,26 +215,28 @@ int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb )
 
   if (kernel_iface == IFACE_GENERIC)
   {
-    struct dqblk_v3 dqb3;
+    union dqblk_v3_wrap dqb3;
 
-    ret = quotactl(QCMD(Q_V3_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb3);
+    ret = quotactl(QCMD(Q_V3_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)),
+                   dev, uid, (caddr_t) &dqb3.dqblk);
     if (ret == 0)
     {
-      dqb->dqb_bhardlimit = dqb3.dqb_bhardlimit;
-      dqb->dqb_bsoftlimit = dqb3.dqb_bsoftlimit;
-      dqb->dqb_curblocks  = dqb3.dqb_curspace / DEV_QBSIZE;
-      dqb->dqb_ihardlimit = dqb3.dqb_ihardlimit;
-      dqb->dqb_isoftlimit = dqb3.dqb_isoftlimit;
-      dqb->dqb_curinodes  = dqb3.dqb_curinodes;
-      dqb->dqb_btime      = dqb3.dqb_btime;
-      dqb->dqb_itime      = dqb3.dqb_itime;
+      dqb->dqb_bhardlimit = dqb3.dqblk.dqb_bhardlimit;
+      dqb->dqb_bsoftlimit = dqb3.dqblk.dqb_bsoftlimit;
+      dqb->dqb_curblocks  = dqb3.dqblk.dqb_curspace / DEV_QBSIZE;
+      dqb->dqb_ihardlimit = dqb3.dqblk.dqb_ihardlimit;
+      dqb->dqb_isoftlimit = dqb3.dqblk.dqb_isoftlimit;
+      dqb->dqb_curinodes  = dqb3.dqblk.dqb_curinodes;
+      dqb->dqb_btime      = dqb3.dqblk.dqb_btime;
+      dqb->dqb_itime      = dqb3.dqblk.dqb_itime;
     }
   }
   else if (kernel_iface == IFACE_VFSV0)
   {
     struct dqblk_v2 dqb2;
 
-    ret = quotactl(QCMD(Q_V2_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb2);
+    ret = quotactl(QCMD(Q_V2_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)),
+                   dev, uid, (caddr_t) &dqb2);
     if (ret == 0)
     {
       dqb->dqb_bhardlimit = dqb2.dqb_bhardlimit;
@@ -242,7 +253,8 @@ int linuxquota_query( const char * dev, int uid, int isgrp, struct dqblk * dqb )
   {
     struct dqblk_v1 dqb1;
 
-    ret = quotactl(QCMD(Q_V1_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb1);
+    ret = quotactl(QCMD(Q_V1_GETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)),
+                   dev, uid, (caddr_t) &dqb1);
     if (ret == 0)
     {
       dqb->dqb_bhardlimit = dqb1.dqb_bhardlimit;
@@ -271,19 +283,20 @@ int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb
 
   if (kernel_iface == IFACE_GENERIC)
   {
-    struct dqblk_v3 dqb3;
+    union dqblk_v3_wrap dqb3;
 
-    dqb3.dqb_bhardlimit = dqb->dqb_bhardlimit;
-    dqb3.dqb_bsoftlimit = dqb->dqb_bsoftlimit;
-    dqb3.dqb_curspace   = 0;
-    dqb3.dqb_ihardlimit = dqb->dqb_ihardlimit;
-    dqb3.dqb_isoftlimit = dqb->dqb_isoftlimit;
-    dqb3.dqb_curinodes  = 0;
-    dqb3.dqb_btime      = dqb->dqb_btime;
-    dqb3.dqb_itime      = dqb->dqb_itime;
-    dqb3.dqb_valid      = (QIF_BLIMITS | QIF_ILIMITS);
+    dqb3.dqblk.dqb_bhardlimit = dqb->dqb_bhardlimit;
+    dqb3.dqblk.dqb_bsoftlimit = dqb->dqb_bsoftlimit;
+    dqb3.dqblk.dqb_curspace   = 0;
+    dqb3.dqblk.dqb_ihardlimit = dqb->dqb_ihardlimit;
+    dqb3.dqblk.dqb_isoftlimit = dqb->dqb_isoftlimit;
+    dqb3.dqblk.dqb_curinodes  = 0;
+    dqb3.dqblk.dqb_btime      = dqb->dqb_btime;
+    dqb3.dqblk.dqb_itime      = dqb->dqb_itime;
+    dqb3.dqblk.dqb_valid      = (QIF_BLIMITS | QIF_ILIMITS);
 
-    ret = quotactl (QCMD(Q_V3_SETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb3);
+    ret = quotactl (QCMD(Q_V3_SETQUOTA, (isgrp ? GRPQUOTA : USRQUOTA)),
+                    dev, uid, (caddr_t) &dqb3.dqblk);
   }
   else if (kernel_iface == IFACE_VFSV0)
   {
@@ -298,7 +311,8 @@ int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb
     dqb2.dqb_btime      = dqb->dqb_btime;
     dqb2.dqb_itime      = dqb->dqb_itime;
 
-    ret = quotactl (QCMD(Q_V2_SETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb2);
+    ret = quotactl (QCMD(Q_V2_SETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)),
+                    dev, uid, (caddr_t) &dqb2);
   }
   else /* if (kernel_iface == IFACE_VFSOLD) */
   {
@@ -313,7 +327,8 @@ int linuxquota_setqlim( const char * dev, int uid, int isgrp, struct dqblk * dqb
     dqb1.dqb_btime      = dqb->dqb_btime;
     dqb1.dqb_itime      = dqb->dqb_itime;
 
-    ret = quotactl (QCMD(Q_V1_SETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)), dev, uid, (caddr_t) &dqb1);
+    ret = quotactl (QCMD(Q_V1_SETQLIM, (isgrp ? GRPQUOTA : USRQUOTA)),
+                    dev, uid, (caddr_t) &dqb1);
   }
 
   return ret;

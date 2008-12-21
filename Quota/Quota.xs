@@ -337,7 +337,7 @@ query(dev,uid=getuid(),kind=0)
 	    err = quotactl(QCMD(Q_XGETQUOTA, ((kind == 2) ? XQM_PRJQUOTA : ((kind == 1) ? XQM_GRPQUOTA : XQM_USRQUOTA))), dev+5, uid, CADR &xfs_dqblk);
 #endif
 	    if(!err) {
-	      EXTEND(sp, 8);
+	      EXTEND(SP, 8);
 	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_bcount))));
 	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_softlimit))));
 	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_hardlimit))));
@@ -355,7 +355,7 @@ query(dev,uid=getuid(),kind=0)
             struct vx_dqblk vxfs_dqb;
             err = vx_quotactl(VX_GETQUOTA, dev+6, uid, CADR &vxfs_dqb);
             if(!err) {
-              EXTEND(sp,8);
+              EXTEND(SP,8);
               PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_curblocks))));
               PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bsoftlimit))));
               PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bhardlimit))));
@@ -378,7 +378,7 @@ query(dev,uid=getuid(),kind=0)
 
 	      err = afs_getquota(dev + 5, &maxQuota, &blocksUsed);
 	      if(!err) {
-		EXTEND(sp, 8);
+		EXTEND(SP, 8);
 		PUSHs(sv_2mortal(newSViv(blocksUsed)));
 		PUSHs(sv_2mortal(newSViv(maxQuota)));
 		PUSHs(sv_2mortal(newSViv(maxQuota)));
@@ -452,7 +452,7 @@ query(dev,uid=getuid(),kind=0)
 #endif /* not USE_IOCTL */
 	    }
 	    if(!err) {
-	      EXTEND(sp, 8);
+	      EXTEND(SP, 8);
 	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
 	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
 	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
@@ -472,10 +472,10 @@ int
 setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
 	char *	dev
 	int	uid
-	int	bs
-	int	bh
-	int	fs
-	int	fh
+	long	bs
+	long	bh
+	long	fs
+	long	fh
 	int	timelimflag
 	int     kind
 	CODE:
@@ -705,7 +705,7 @@ rpcquery(host,path,uid=getuid(),kind=0)
 #ifndef NO_RPC
 	  struct dqblk dqblk;
           if (getnfsquota(host, path, uid, kind, &dqblk) == 0) {
-	    EXTEND(sp, 8);
+	    EXTEND(SP, 8);
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
 	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
@@ -844,7 +844,7 @@ getmntent()
 	  if(mtab != NULL) {
 	    mntp = getmntent(mtab);
 	    if(mntp != NULL) {
-	      EXTEND(sp, 4);
+	      EXTEND(SP, 4);
 	      PUSHs(sv_2mortal(newSVpv(mntp->mnt_fsname, strlen(mntp->mnt_fsname))));
 	      PUSHs(sv_2mortal(newSVpv(mntp->mnt_dir, strlen(mntp->mnt_dir))));
 	      PUSHs(sv_2mortal(newSVpv(mntp->mnt_type, strlen(mntp->mnt_type))));
@@ -857,7 +857,7 @@ getmntent()
 	  struct mnttab mntp;
 	  if(mtab != NULL) {
 	    if(getmntent(mtab, &mntp) == 0)  {
-	      EXTEND(sp, 4);
+	      EXTEND(SP, 4);
 	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_special, strlen(mntp.mnt_special))));
 	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_mountp, strlen(mntp.mnt_mountp))));
 	      PUSHs(sv_2mortal(newSVpv(mntp.mnt_fstype, strlen(mntp.mnt_fstype))));
@@ -872,7 +872,7 @@ getmntent()
           char *fstype = getvfsbynumber((int)mntp->f_type);
 #endif
 	  if((mtab != NULL) && mtab_size) {
-	    EXTEND(sp,4);
+	    EXTEND(SP,4);
 	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntfromname, strlen(mntp->f_mntfromname))));
 	    PUSHs(sv_2mortal(newSVpv(mntp->f_mntonname, strlen(mntp->f_mntonname))));
 #ifdef OSF_QUOTA
@@ -913,7 +913,7 @@ getmntent()
 	    vmp = (struct vmount *) cp;
 	    aix_mtab_idx += 1;
 
-	    EXTEND(sp,4);
+	    EXTEND(SP,4);
 	    if ((vmp->vmt_gfstype != MNT_NFS) && (vmp->vmt_gfstype != MNT_NFS3)) {
 	      cp = vmt2dataptr(vmp, VMT_OBJECT);
 	      PUSHs(sv_2mortal(newSVpv(cp, strlen(cp))));

@@ -40,7 +40,7 @@
 #define QCMD(cmd, type)  (((cmd) << SUBCMDSHIFT) | ((type) & SUBCMDMASK))
 
 /* declare an internal version of the quota block struct */
-typedef unsigned int qsize_t;
+typedef u_int64_t qsize_t;
 struct dqblk {
   qsize_t dqb_ihardlimit;   /* absolute limit on allocated inodes */
   qsize_t dqb_isoftlimit;   /* preferred inode limit */

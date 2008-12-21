@@ -1,3 +1,11 @@
+Changes in 1.6.3 (December 2008)
+- Fixed SEG fault for 32-bit Linux clients on top of 64-bit kernels
+  Thanks to Jani Ollikainen (pronetko.fi) for reporting and debugging this.
+  Thanks to Thomas Rzipa for reporting this issue, too.
+- Fixed setqlim to allow setting limits exceeding 2^32 blocks or files.
+  The current solution will work only for perl executables which support
+  64-bit wide integers (e.g. x86-64)
+
 Changes in 1.6.2 (January 2008)
 - Fixed memory leak in RPC authentication
   Thanks again to Kostik (koc at rol.ru)
