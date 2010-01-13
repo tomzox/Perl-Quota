@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------ #
-# Quota.pm - Copyright (C) 1995-2007 Tom Zoerner
+# Quota.pm - Copyright (C) 1995-2010 Tom Zoerner
 # ------------------------------------------------------------------------ #
 # This program is free software: you can redistribute it and/or modify
 # it either under the terms of the Perl Artistic License or the GNU
@@ -22,7 +22,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.6.3';
+$VERSION = '1.6.4';
 
 bootstrap Quota;
 

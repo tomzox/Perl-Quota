@@ -1,3 +1,7 @@
+Changes in 1.6.4 (January 2010)
+- Fixed RPC quota block count truncation to 32bit (CPAN ticket 52813 )
+  Thanks to Lloyd Brown for reporting the bug
+
 Changes in 1.6.3 (December 2008)
 - Fixed SEG fault for 32-bit Linux clients on top of 64-bit kernels
   Thanks to Jani Ollikainen (pronetko.fi) for reporting and debugging this.

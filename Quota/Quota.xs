@@ -190,12 +190,18 @@ getnfsquota(hostp, fsnamep, uid, kind, dqp)
       dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
 #else /* not buggy */
       if (gq_rslt.GQR_RQUOTA.rq_bsize >= DEV_QBSIZE) {
+        /* assign first, multiply later:
+        ** so that mult works with the possibly larger type in dqp */
+        dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit;
+        dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
+        dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
+
 	/* we rely on the fact that block sizes are always powers of 2 */
 	/* so the conversion factor will never be a fraction */
         int qb_fac = gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
-	dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit * qb_fac;
-	dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit * qb_fac;
-	dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks * qb_fac;
+	dqp->QS_BHARD *= qb_fac;
+	dqp->QS_BSOFT *= qb_fac;
+	dqp->QS_BCUR *= qb_fac;
       }
       else {
         int qb_fac = DEV_QBSIZE / gq_rslt.GQR_RQUOTA.rq_bsize;
