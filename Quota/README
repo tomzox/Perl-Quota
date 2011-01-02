@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (tomzo AT users.sourceforge.net)
 
-Version:   1.6.4
-Date:      January 2010
+Version:   1.6.5
+Date:      January 2011
 DLSIP-Code:Rcdfg
            - stable release
            - C compiler required for installation

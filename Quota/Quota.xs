@@ -176,6 +176,7 @@ getnfsquota(hostp, fsnamep, uid, kind, dqp)
   case Q_OK:
     {
       struct timeval tv;
+      int qb_fac;
 
       gettimeofday(&tv, NULL);
 #ifdef LINUX_RQUOTAD_BUG
@@ -196,18 +197,18 @@ getnfsquota(hostp, fsnamep, uid, kind, dqp)
         dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
         dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
 
-	/* we rely on the fact that block sizes are always powers of 2 */
-	/* so the conversion factor will never be a fraction */
-        int qb_fac = gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
-	dqp->QS_BHARD *= qb_fac;
-	dqp->QS_BSOFT *= qb_fac;
-	dqp->QS_BCUR *= qb_fac;
+        /* we rely on the fact that block sizes are always powers of 2 */
+        /* so the conversion factor will never be a fraction */
+        qb_fac = gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
+        dqp->QS_BHARD *= qb_fac;
+        dqp->QS_BSOFT *= qb_fac;
+        dqp->QS_BCUR *= qb_fac;
       }
       else {
-        int qb_fac = DEV_QBSIZE / gq_rslt.GQR_RQUOTA.rq_bsize;
-	dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit / qb_fac;
-	dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit / qb_fac;
-	dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks / qb_fac;
+        qb_fac = DEV_QBSIZE / gq_rslt.GQR_RQUOTA.rq_bsize;
+        dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit / qb_fac;
+        dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit / qb_fac;
+        dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks / qb_fac;
       }
 #endif /* LINUX_RQUOTAD_BUG */
       dqp->QS_FHARD = gq_rslt.GQR_RQUOTA.rq_fhardlimit;
@@ -562,6 +563,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
           else
 #endif /* HAVE_JFS2 */
 	  {
+            memset(&dqblk, 0, sizeof(dqblk));
 	    dqblk.QS_BSOFT = Q_MUL(bs);
 	    dqblk.QS_BHARD = Q_MUL(bh);
 	    dqblk.QS_BTIME = timelimflag;
