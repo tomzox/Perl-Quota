@@ -1,3 +1,10 @@
+Changes in 1.6.6 (June 2011)
+- Ignore "rootfs" filesystem in Quota::getqcarg() on Linux, which always
+  is a duplicate.  Thanks to "abaturin" for providing this patch.
+- Made test.pl exit immediately when AUTOMATED_TESTING is set in the
+  environment (same as when called not from a tty), as all tests require
+  user interaction. Changed on request of TODDR of cpan.org
+
 Changes in 1.6.5 (January 2011)
 - Fixed syntax error and missing init for params to setqlim()
   Thanks to Heinrich Mislik for reporting the bugs

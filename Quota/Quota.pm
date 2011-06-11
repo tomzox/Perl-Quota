@@ -22,7 +22,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.6.5';
+$VERSION = '1.6.6';
 
 bootstrap Quota;
 
@@ -69,7 +69,7 @@ sub getqcarg {
 
   if(defined($dev) && ($target ne "") && !Quota::setmntent()) {
     while(($fsname,$path,$fstyp,$fsopt) = Quota::getmntent()) {
-      next if $fstyp =~ /^(lofs|ignore|auto.*|proc)$/;
+      next if $fstyp =~ /^(lofs|ignore|auto.*|proc|rootfs)$/;
       my($pdev) = (stat($path))[0];
       if (defined($pdev) && ($dev == $pdev)) {
         if ($fsname =~ m|^[^/]+:/|) {

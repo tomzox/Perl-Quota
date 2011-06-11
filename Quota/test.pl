@@ -19,6 +19,10 @@ if (! -t) {
    print STDERR "\nThis is an interactive test script - input must be a tty\nExiting now.\n";
    exit;
 }
+if ($ENV{AUTOMATED_TESTING}) {
+   print STDERR "\nNo tests available for AUTOMATED_TESTING - Exiting now.\n";
+   exit;
+}
 
 while(1) {
   print "\nEnter path to get quota for (NFS possible; default '.'): ";
