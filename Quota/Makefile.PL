@@ -13,7 +13,7 @@ elsif($os =~ /^HP-UX (A\.09|B\.10|[BC]\.11)/) { $config='hpux.h'; }
 elsif($os =~ /^IRIX 5/)    { $config='irix_5.h'; }
 elsif($os =~ /^IRIX\d* 6/) { $config='irix_6.h'; }
 elsif($os =~ /^OSF1/)      { $config='dec_osf.h'; }
-elsif($os =~ /^Linux 2/)   { $config='linux.h'; $picobj='linuxapi.o'; }
+elsif($os =~ /^Linux [23]/){ $config='linux.h'; $picobj='linuxapi.o'; }
 elsif($os =~ /^AIX/)       { $config='aix_4_1.h'; }
 elsif($os =~ /^BSD\/OS 2/ ||
       $os =~ /^Darwin/    ||
