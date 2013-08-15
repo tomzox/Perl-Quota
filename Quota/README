@@ -3,8 +3,8 @@ Quota extension module for Perl
 
 Author:    Tom Zoerner (tomzo AT users.sourceforge.net)
 
-Version:   1.6.7
-Date:      November 2011
+Version:   1.7.0
+Date:      August 2013
 DLSIP-Code:Rcdfg
            - stable release
            - C compiler required for installation
@@ -16,7 +16,7 @@ DLSIP-Code:Rcdfg
 Location:  http://www.perl.com/CPAN/authors/Tom_Zoerner/
 
 Supported: SunOS 4.1.3,
-           Solaris 2.4 & 2.5 & 2.6 & 2.8,
+           Solaris 2.4 - 2.10,
            HP-UX 9.0x & 10.10 & 10.20 & 11.00,
            IRIX 5.2 & 5.3 & 6.2 - 6.5,
            OSF/1 & Digital Unix 4,
@@ -125,6 +125,10 @@ DESCRIPTION
          Sets quota limits for the given user. Meanings of $dev,
          $uid, $bs, $bh, $is and $ih are the same as in
          Quota::query.
+
+         For file systems exceeding 2 TB: To allow passing block or
+         inode values larger or equal to 2^32 on 32-bit Perl versions,
+         pass them either as strings or floating point.
 
          $tlo decides how the time limits are initialized:  0:
          The time limits are set to NOT STARTED, i.e. the time

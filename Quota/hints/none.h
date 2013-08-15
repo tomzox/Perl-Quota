@@ -81,6 +81,13 @@
    you can generate these routines with rpcgen, too */
 /* #define MY_XDR /**/
 
+/* define this to enable support for extended quota RPC (i.e. quota RPC
+ * version 2), which is needed to allow querying group quotas via RPC. To
+ * check if your OS supports it, search for EXT_RQUOTAVERS in the system
+ * header files. If not, you can define MY_XDR to use module internal
+ * support. */
+/* #define USE_EXT_RQUOTA /**/
+
 /* needed only if MOUNTED is not defined in <mnttab.h> (see above) */
 /* define MOUNTED mnttab /**/
 
@@ -93,6 +100,13 @@
 /* if your system doesn't have /etc/mnttab, and hence no getmntent,
    use getmntinfo instead then (e.g. in OSF) */
 /* #define NO_MNTENT /**/
+
+/* With USE_EXT_RQUOTA these constants distinguish queries for user and
+ * group quota respectively. Only BSD defines these constants properly. For
+ * others use USRQUTA and GRPQUOTA, or simply the real constants (these must
+ * be the same for all OS to allow inter-operability.) */
+#define GQA_TYPE_USR 0 /* RQUOTA_USRQUOTA */
+#define GQA_TYPE_GRP 1 /* RQUOTA_GRPQUOTA */
 
 /* name of the status entry in struc getquota_rslt and name of the struct
  * or union that contains the quota values. See include <rpcsvc/rquota.h>

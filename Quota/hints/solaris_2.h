@@ -43,6 +43,8 @@ struct quotactl {
  */
 #define MY_XDR
 
+#define GQA_TYPE_USR USRQUOTA  /* RQUOTA_USRQUOTA */
+#define GQA_TYPE_GRP GRPQUOTA  /* RQUOTA_GRPQUOTA */
 #define GQR_STATUS status
 #define GQR_RQUOTA getquota_rslt_u.gqr_rquota
 

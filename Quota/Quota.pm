@@ -1,5 +1,5 @@
 # ------------------------------------------------------------------------ #
-# Quota.pm - Copyright (C) 1995-2011 Tom Zoerner
+# Quota.pm - Copyright (C) 1995-2013 Tom Zoerner
 # ------------------------------------------------------------------------ #
 # This program is free software: you can redistribute it and/or modify
 # it either under the terms of the Perl Artistic License or the GNU
@@ -22,7 +22,7 @@ require DynaLoader;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT = ();
 
-$VERSION = '1.6.7';
+$VERSION = '1.7.0';
 
 bootstrap Quota;
 
@@ -225,6 +225,10 @@ this flag is ignored.
 
 Sets quota limits for the given user. Meanings of I<$dev>, I<$uid>,
 I<$bs>, I<$bh>, I<$is> and I<$ih> are the same as in B<Quota::query>.
+
+For file systems exceeding 2 TB: To allow passing block or inode
+values larger or equal to 2^32 on 32-bit Perl versions, pass them
+either as strings or floating point.
 
 I<$tlo> decides how the time limits are initialized:
 I<0>: The time limits are set to B<NOT STARTED>, i.e. the time limits

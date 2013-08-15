@@ -1,3 +1,10 @@
+Changes in 1.7.0 (August 2013)
+- Added support for the new NetBSD 6.0 quota system (libquota)
+  Thanks to David Holland and Edgar Fuss
+- To support limits and usage >= 2^32 on 32-bit clients, Quota::setqlim
+  and Quota::query interfaces were changed to use double (NV) instead
+  of integer (IV). This should be transparent to users of the module.
+
 Changes in 1.6.7 (November 2011)
 - Added support to detect 3.x Linux kernels
   Thanks to Salvatore Bonaccorso of the Debian Perl Group

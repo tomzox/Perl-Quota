@@ -70,6 +70,8 @@ int linuxquota_sync( const char * dev, int isgrp );
 
 #define MNTENT mntent
 
+#define GQA_TYPE_USR USRQUOTA  /* RQUOTA_USRQUOTA */
+#define GQA_TYPE_GRP GRPQUOTA  /* RQUOTA_GRPQUOTA */
 #define GQR_STATUS status
 #define GQR_RQUOTA getquota_rslt_u.gqr_rquota
 
@@ -93,7 +95,7 @@ int linuxquota_sync( const char * dev, int isgrp );
 
 /* optional: for support of SGI XFS file systems - comment out if not needed */
 #define SGI_XFS
-#define QX_DIV(X) ((X) >> 1)
-#define QX_MUL(X) ((X) << 1)
+#define QX_DIV(X) ((X) / 2)
+#define QX_MUL(X) ((X) * 2)
 #include "include/quotaio_xfs.h"
 

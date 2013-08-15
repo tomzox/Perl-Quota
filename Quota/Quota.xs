@@ -58,6 +58,17 @@ static struct
     char          hostname[MAX_MACHINE_NAME + 1];
 } quota_rpc_auth = {-1, -1, {0} };
 
+struct quota_xs_nfs_rslt {
+  double bhard;
+  double bsoft;
+  double bcur;
+  time_t btime;
+  double fhard;
+  double fsoft;
+  double fcur;
+  time_t ftime;
+};
+
 /*
  * fetch quotas from remote host
  */
@@ -135,11 +146,8 @@ callaurpc(host, prognum, versnum, procnum, inproc, in, outproc, out)
 }
 
 int
-getnfsquota(hostp, fsnamep, uid, kind, dqp)
-  char *hostp, *fsnamep;
-  int uid;
-  int kind;
-  struct dqblk *dqp;
+getnfsquota( char *hostp, char *fsnamep, int uid, int kind,
+             struct quota_xs_nfs_rslt *rslt )
 {
   struct getquota_args gq_args;
   struct getquota_rslt gq_rslt;
@@ -151,7 +159,7 @@ getnfsquota(hostp, fsnamep, uid, kind, dqp)
    */
   ext_gq_args.gqa_pathp = fsnamep;
   ext_gq_args.gqa_id = uid;
-  ext_gq_args.gqa_type = ((kind != 0) ? GRPQUOTA : USRQUOTA);
+  ext_gq_args.gqa_type = ((kind != 0) ? GQA_TYPE_GRP : GQA_TYPE_USR);
 
   if (callaurpc(hostp, RQUOTAPROG, EXT_RQUOTAVERS, RQUOTAPROC_GETQUOTA,
                 xdr_ext_getquota_args, &ext_gq_args,
@@ -186,53 +194,55 @@ getnfsquota(hostp, fsnamep, uid, kind, dqp)
        * If you have a mixed environment, you have a problem though.
        * Complain to the Linux authors or apply my patch (see INSTALL)
        */
-      dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit;
-      dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
-      dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
+      rslt->bhard = gq_rslt.GQR_RQUOTA.rq_bhardlimit;
+      rslt->bsoft = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
+      rslt->bcur = gq_rslt.GQR_RQUOTA.rq_curblocks;
 #else /* not buggy */
       if (gq_rslt.GQR_RQUOTA.rq_bsize >= DEV_QBSIZE) {
         /* assign first, multiply later:
-        ** so that mult works with the possibly larger type in dqp */
-        dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit;
-        dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
-        dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks;
+        ** so that mult works with the possibly larger type in rslt */
+        rslt->bhard = gq_rslt.GQR_RQUOTA.rq_bhardlimit;
+        rslt->bsoft = gq_rslt.GQR_RQUOTA.rq_bsoftlimit;
+        rslt->bcur = gq_rslt.GQR_RQUOTA.rq_curblocks;
 
         /* we rely on the fact that block sizes are always powers of 2 */
         /* so the conversion factor will never be a fraction */
         qb_fac = gq_rslt.GQR_RQUOTA.rq_bsize / DEV_QBSIZE;
-        dqp->QS_BHARD *= qb_fac;
-        dqp->QS_BSOFT *= qb_fac;
-        dqp->QS_BCUR *= qb_fac;
+        rslt->bhard *= qb_fac;
+        rslt->bsoft *= qb_fac;
+        rslt->bcur *= qb_fac;
       }
       else {
         qb_fac = DEV_QBSIZE / gq_rslt.GQR_RQUOTA.rq_bsize;
-        dqp->QS_BHARD = gq_rslt.GQR_RQUOTA.rq_bhardlimit / qb_fac;
-        dqp->QS_BSOFT = gq_rslt.GQR_RQUOTA.rq_bsoftlimit / qb_fac;
-        dqp->QS_BCUR = gq_rslt.GQR_RQUOTA.rq_curblocks / qb_fac;
+        rslt->bhard = gq_rslt.GQR_RQUOTA.rq_bhardlimit / qb_fac;
+        rslt->bsoft = gq_rslt.GQR_RQUOTA.rq_bsoftlimit / qb_fac;
+        rslt->bcur = gq_rslt.GQR_RQUOTA.rq_curblocks / qb_fac;
       }
 #endif /* LINUX_RQUOTAD_BUG */
-      dqp->QS_FHARD = gq_rslt.GQR_RQUOTA.rq_fhardlimit;
-      dqp->QS_FSOFT = gq_rslt.GQR_RQUOTA.rq_fsoftlimit;
-      dqp->QS_FCUR = gq_rslt.GQR_RQUOTA.rq_curfiles;
+      rslt->fhard = gq_rslt.GQR_RQUOTA.rq_fhardlimit;
+      rslt->fsoft = gq_rslt.GQR_RQUOTA.rq_fsoftlimit;
+      rslt->fcur = gq_rslt.GQR_RQUOTA.rq_curfiles;
 
       /* if time is given relative to actual time, add actual time */
       /* Note: all systems except Linux return relative times */
       if (gq_rslt.GQR_RQUOTA.rq_btimeleft == 0)
-        dqp->QS_BTIME = 0;
+        rslt->btime = 0;
       else if (gq_rslt.GQR_RQUOTA.rq_btimeleft + 10*365*24*60*60 < tv.tv_sec)
-        dqp->QS_BTIME = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_btimeleft;
+        rslt->btime = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_btimeleft;
       else
-        dqp->QS_BTIME = gq_rslt.GQR_RQUOTA.rq_btimeleft;
+        rslt->btime = gq_rslt.GQR_RQUOTA.rq_btimeleft;
 
       if (gq_rslt.GQR_RQUOTA.rq_ftimeleft == 0)
-        dqp->QS_FTIME = 0;
+        rslt->ftime = 0;
       else if (gq_rslt.GQR_RQUOTA.rq_ftimeleft + 10*365*24*60*60 < tv.tv_sec)
-        dqp->QS_FTIME = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_ftimeleft;
+        rslt->ftime = tv.tv_sec + gq_rslt.GQR_RQUOTA.rq_ftimeleft;
       else
-        dqp->QS_FTIME = gq_rslt.GQR_RQUOTA.rq_ftimeleft;
+        rslt->ftime = gq_rslt.GQR_RQUOTA.rq_ftimeleft;
 
-      if(dqp->QS_BHARD==0 && dqp->QS_BSOFT==0 &&
-         dqp->QS_FHARD==0 && dqp->QS_FSOFT==0) {
+      if((gq_rslt.GQR_RQUOTA.rq_bhardlimit == 0) &&
+         (gq_rslt.GQR_RQUOTA.rq_bsoftlimit == 0) &&
+         (gq_rslt.GQR_RQUOTA.rq_fhardlimit == 0) &&
+         (gq_rslt.GQR_RQUOTA.rq_fsoftlimit == 0)) {
         errno = ESRCH;
 	return(-1);
       }
@@ -328,13 +338,8 @@ query(dev,uid=getuid(),kind=0)
 	int     kind
 	PPCODE:
 	{
-	  struct dqblk dqblk;
 	  char *p = NULL;
 	  int err;
-#ifdef USE_IOCTL
-	  struct quotactl qp;
-	  int fd = -1;
-#endif
 #ifdef SGI_XFS
 	  if(!strncmp(dev, "(XFS)", 5)) {
 	    fs_disk_quota_t xfs_dqblk;
@@ -345,13 +350,13 @@ query(dev,uid=getuid(),kind=0)
 #endif
 	    if(!err) {
 	      EXTEND(SP, 8);
-	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_bcount))));
-	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_softlimit))));
-	      PUSHs(sv_2mortal(newSViv(QX_DIV(xfs_dqblk.d_blk_hardlimit))));
+	      PUSHs(sv_2mortal(newSVnv(QX_DIV(xfs_dqblk.d_bcount))));
+	      PUSHs(sv_2mortal(newSVnv(QX_DIV(xfs_dqblk.d_blk_softlimit))));
+	      PUSHs(sv_2mortal(newSVnv(QX_DIV(xfs_dqblk.d_blk_hardlimit))));
 	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_btimer)));
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_icount)));
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_softlimit)));
-	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_ino_hardlimit)));
+	      PUSHs(sv_2mortal(newSVnv(xfs_dqblk.d_icount)));
+	      PUSHs(sv_2mortal(newSVnv(xfs_dqblk.d_ino_softlimit)));
+	      PUSHs(sv_2mortal(newSVnv(xfs_dqblk.d_ino_hardlimit)));
 	      PUSHs(sv_2mortal(newSViv(xfs_dqblk.d_itimer)));
 	    }
 	  }
@@ -363,13 +368,13 @@ query(dev,uid=getuid(),kind=0)
             err = vx_quotactl(VX_GETQUOTA, dev+6, uid, CADR &vxfs_dqb);
             if(!err) {
               EXTEND(SP,8);
-              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_curblocks))));
-              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bsoftlimit))));
-              PUSHs(sv_2mortal(newSViv(Q_DIV(vxfs_dqb.dqb_bhardlimit))));
+              PUSHs(sv_2mortal(newSVnv(Q_DIV(vxfs_dqb.dqb_curblocks))));
+              PUSHs(sv_2mortal(newSVnv(Q_DIV(vxfs_dqb.dqb_bsoftlimit))));
+              PUSHs(sv_2mortal(newSVnv(Q_DIV(vxfs_dqb.dqb_bhardlimit))));
               PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_btimelimit)));
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_curfiles)));
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_fsoftlimit)));
-              PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_fhardlimit)));
+              PUSHs(sv_2mortal(newSVnv(vxfs_dqb.dqb_curfiles)));
+              PUSHs(sv_2mortal(newSVnv(vxfs_dqb.dqb_fsoftlimit)));
+              PUSHs(sv_2mortal(newSVnv(vxfs_dqb.dqb_fhardlimit)));
               PUSHs(sv_2mortal(newSViv(vxfs_dqb.dqb_ftimelimit)));
             }
           }
@@ -402,21 +407,68 @@ query(dev,uid=getuid(),kind=0)
 	  {
 	    if((*dev != '/') && (p = strchr(dev, ':'))) {
 #ifndef NO_RPC
-	      *p = '\0';
-              err = getnfsquota(dev, p+1, uid, kind, &dqblk);
-	      *p = ':';
+              struct quota_xs_nfs_rslt rslt;
+              *p = '\0';
+              err = getnfsquota(dev, p+1, uid, kind, &rslt);
+              if (!err) {
+                EXTEND(SP, 8);
+                PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bcur))));
+                PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bsoft))));
+                PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bhard))));
+                PUSHs(sv_2mortal(newSViv(rslt.btime)));
+                PUSHs(sv_2mortal(newSVnv(rslt.fcur)));
+                PUSHs(sv_2mortal(newSVnv(rslt.fsoft)));
+                PUSHs(sv_2mortal(newSVnv(rslt.fhard)));
+                PUSHs(sv_2mortal(newSViv(rslt.ftime)));
+              }
+              *p = ':';
 #else /* NO_RPC */
 	      errno = ENOSYS;
               err = -1;
 #endif /* NO_RPC */
             }
-	    else {
+            else {
+#ifdef NETBSD_LIBQUOTA
+              struct quotahandle *qh = quota_open(dev);
+              if (qh != NULL) {
+                struct quotakey qk_blocks, qk_files;
+                struct quotaval qv_blocks, qv_files;
+
+                qk_blocks.qk_idtype = qk_files.qk_idtype = kind ? QUOTA_IDTYPE_GROUP : QUOTA_IDTYPE_USER;
+                qk_blocks.qk_id = qk_files.qk_id = uid;
+                qk_blocks.qk_objtype = QUOTA_OBJTYPE_BLOCKS;
+                qk_files.qk_objtype = QUOTA_OBJTYPE_FILES;
+
+                if ( (quota_get(qh, &qk_blocks, &qv_blocks) >= 0) &&
+                     (quota_get(qh, &qk_files, &qv_files) >= 0) ) {
+                  EXTEND(SP, 8);
+                  PUSHs(sv_2mortal(newSVnv(Q_DIV(qv_blocks.qv_usage))));
+                  PUSHs(sv_2mortal(newSVnv(Q_DIV(qv_blocks.qv_softlimit))));
+                  PUSHs(sv_2mortal(newSVnv(Q_DIV(qv_blocks.qv_hardlimit))));
+                  PUSHs(sv_2mortal(newSViv(qv_blocks.qv_expiretime)));
+                  PUSHs(sv_2mortal(newSVnv(qv_files.qv_usage)));
+                  PUSHs(sv_2mortal(newSVnv(qv_files.qv_softlimit)));
+                  PUSHs(sv_2mortal(newSVnv(qv_files.qv_hardlimit)));
+                  PUSHs(sv_2mortal(newSViv(qv_files.qv_expiretime)));
+                }
+                quota_close(qh);
+              }
+#else /* not NETBSD_LIBQUOTA */
+	      struct dqblk dqblk;
 #ifdef USE_IOCTL
+	      struct quotactl qp;
+	      int fd = -1;
+
 	      qp.op = Q_GETQUOTA;
 	      qp.uid = uid;
 	      qp.addr = (char *)&dqblk;
-	      err = (((fd = open(dev, O_RDONLY)) == -1) ||
-		     (ioctl(fd, Q_QUOTACTL, &qp) == -1));
+	      if ((fd = open(dev, O_RDONLY)) != -1) {
+	        err = (ioctl(fd, Q_QUOTACTL, &qp) == -1);
+	        close(fd);
+	      }
+	      else {
+	        err = 1;
+	      }
 #else /* not USE_IOCTL */
 #ifdef Q_CTL_V3  /* Linux */
 	      err = linuxquota_query(dev, uid, (kind != 0), &dqblk);
@@ -427,23 +479,24 @@ query(dev,uid=getuid(),kind=0)
               struct stat st;
 #if defined(HAVE_JFS2)
               if (strncmp(dev, "(JFS2)", 6) == 0) {
-                if (stat(dev + 6, &st)) {
-		  err = 1;
-                }
-		else {
-		  quota64_t user_quota;
+                if (stat(dev + 6, &st) == 0) {
+                  quota64_t user_quota;
 
-		  err = quotactl(dev + 6, QCMD(Q_J2GETQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)),
+                  err = quotactl(dev + 6, QCMD(Q_J2GETQUOTA, ((kind != 0) ? GRPQUOTA : USRQUOTA)),
                                  uid, CADR &user_quota);
-		  dqblk.dqb_curblocks  = user_quota.bused;
-		  dqblk.dqb_bsoftlimit = user_quota.bsoft;
-		  dqblk.dqb_bhardlimit = user_quota.bhard;
-		  dqblk.dqb_ihardlimit = user_quota.ihard;
-		  dqblk.dqb_isoftlimit = user_quota.isoft;
-		  dqblk.dqb_curinodes = user_quota.iused;
-		  dqblk.dqb_btime = user_quota.btime;
-		  dqblk.dqb_itime = user_quota.itime;
-		}
+                  if (!err) {
+                    EXTEND(SP, 8);
+                    PUSHs(sv_2mortal(newSVnv(user_quota.bused)));
+                    PUSHs(sv_2mortal(newSVnv(user_quota.bsoft)));
+                    PUSHs(sv_2mortal(newSVnv(user_quota.bhard)));
+                    PUSHs(sv_2mortal(newSViv(user_quota.btime)));
+                    PUSHs(sv_2mortal(newSVnv(user_quota.ihard)));
+                    PUSHs(sv_2mortal(newSVnv(user_quota.isoft)));
+                    PUSHs(sv_2mortal(newSVnv(user_quota.iused)));
+                    PUSHs(sv_2mortal(newSViv(user_quota.itime)));
+                  }
+                }
+                err = 1; /* dummy to suppress duplicate push below */
               }
 #endif /* HAVE_JFS2 */
               else if (stat(dev, &st)) {
@@ -457,21 +510,19 @@ query(dev,uid=getuid(),kind=0)
 #endif /* not Q_CTL_V2 */
 #endif /* Q_CTL_V3 */
 #endif /* not USE_IOCTL */
+	      if(!err) {
+	        EXTEND(SP, 8);
+	        PUSHs(sv_2mortal(newSVnv(Q_DIV(dqblk.QS_BCUR))));
+	        PUSHs(sv_2mortal(newSVnv(Q_DIV(dqblk.QS_BSOFT))));
+	        PUSHs(sv_2mortal(newSVnv(Q_DIV(dqblk.QS_BHARD))));
+	        PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
+	        PUSHs(sv_2mortal(newSVnv(dqblk.QS_FCUR)));
+	        PUSHs(sv_2mortal(newSVnv(dqblk.QS_FSOFT)));
+	        PUSHs(sv_2mortal(newSVnv(dqblk.QS_FHARD)));
+	        PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
+	      }
+#endif /* not NETBSD_LIBQUOTA */
 	    }
-	    if(!err) {
-	      EXTEND(SP, 8);
-	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
-	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
-	      PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FCUR)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FSOFT)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FHARD)));
-	      PUSHs(sv_2mortal(newSViv(dqblk.QS_FTIME)));
-	    }
-#ifdef USE_IOCTL
-	    if(fd != -1) close(fd);
-#endif
 	  }
         }
 
@@ -479,15 +530,17 @@ int
 setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
 	char *	dev
 	int	uid
-	long	bs
-	long	bh
-	long	fs
-	long	fh
+	double	bs
+	double	bh
+	double	fs
+	double	fh
 	int	timelimflag
 	int     kind
 	CODE:
 	{
+#ifndef NETBSD_LIBQUOTA
 	  struct dqblk dqblk;
+#endif
 #ifdef USE_IOCTL
 	  struct quotactl qp;
 	  int fd;
@@ -529,8 +582,8 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
             vxfs_dqb.dqb_fhardlimit = fh;
             vxfs_dqb.dqb_ftimelimit = timelimflag;
             RETVAL = vx_quotactl(VX_SETQUOTA, dev+6, uid, CADR &vxfs_dqb);
-        }
-        else
+          }
+          else
 #endif
 #ifdef AFSQUOTA
 	  if(!strncmp(dev, "(AFS)", 5)) {
@@ -563,6 +616,61 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
           else
 #endif /* HAVE_JFS2 */
 	  {
+#ifdef NETBSD_LIBQUOTA
+            struct quotahandle *qh;
+            struct quotakey qk;
+            struct quotaval qv;
+
+            RETVAL = -1;
+            qh = quota_open(dev);
+            if (qh != NULL) {
+              qk.qk_idtype = kind ? QUOTA_IDTYPE_GROUP : QUOTA_IDTYPE_USER;
+              qk.qk_id = uid;
+
+              qk.qk_objtype = QUOTA_OBJTYPE_BLOCKS;
+
+              /* set the grace period for blocks */
+              if (timelimflag) { /* seven days */
+                qv.qv_grace = 7*24*60*60;
+              } else if (quota_get(qh, &qk, &qv) >= 0) { /* use user's current setting */
+		/* OK */
+              } else if (qk.qk_id = QUOTA_DEFAULTID, quota_get(qh, &qk, &qv) >= 0) { /* use default setting */
+		/* OK, reset qk_id */
+                qk.qk_id = uid;
+              } else {
+                qv.qv_grace = 0; /* XXX */
+              }
+
+              qv.qv_usage = 0;
+              qv.qv_hardlimit = Q_MUL(bh);
+              qv.qv_softlimit = Q_MUL(bs);
+              qv.qv_expiretime = 0;
+              if (quota_put(qh, &qk, &qv) >= 0) {
+                qk.qk_objtype = QUOTA_OBJTYPE_FILES;
+
+                /* set the grace period for files, see comments above */
+                if (timelimflag) {
+                  qv.qv_grace = 7*24*60*60;
+                } else if (quota_get(qh, &qk, &qv) >= 0) {
+		  /* OK */
+                } else if (qk.qk_id = QUOTA_DEFAULTID, quota_get(qh, &qk, &qv) >= 0) {
+		  /* OK, reset qk_id */
+                  qk.qk_id = uid;
+                } else {
+                  qv.qv_grace = 0; /* XXX */
+                }
+
+                qv.qv_usage = 0;
+                qv.qv_hardlimit = fh;
+                qv.qv_softlimit = fs;
+                qv.qv_expiretime = 0;
+                if (quota_put(qh, &qk, &qv) >= 0) {
+                  RETVAL = 0;
+                }
+              }
+              quota_close(qh);
+            }
+#else /* not NETBSD_LIBQUOTA */
             memset(&dqblk, 0, sizeof(dqblk));
 	    dqblk.QS_BSOFT = Q_MUL(bs);
 	    dqblk.QS_BHARD = Q_MUL(bh);
@@ -588,6 +696,7 @@ setqlim(dev,uid,bs,bh,fs,fh,timelimflag=0,kind=0)
 #endif
 #endif
 #endif
+#endif /* not NETBSD_LIBQUOTA */
 	  }
 	}
 	OUTPUT:
@@ -616,6 +725,9 @@ sync(dev=NULL)
 	}
 	else
 #endif
+#ifdef NETBSD_LIBQUOTA
+	RETVAL = 0;
+#else /* not NETBSD_LIBQUOTA */
 #ifdef USE_IOCTL
 	{
 	  struct quotactl qp;
@@ -698,6 +810,7 @@ sync(dev=NULL)
 #endif
         }
 #endif
+#endif /* NETBSD_LIBQUOTA */
 	OUTPUT:
 	RETVAL
 
@@ -711,18 +824,17 @@ rpcquery(host,path,uid=getuid(),kind=0)
 	PPCODE:
 	{
 #ifndef NO_RPC
-	  struct dqblk dqblk;
-          if (getnfsquota(host, path, uid, kind, &dqblk) == 0) {
+          struct quota_xs_nfs_rslt rslt;
+          if (getnfsquota(host, path, uid, kind, &rslt) == 0) {
 	    EXTEND(SP, 8);
-	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BCUR))));
-	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BSOFT))));
-	    PUSHs(sv_2mortal(newSViv(Q_DIV(dqblk.QS_BHARD))));
-	    PUSHs(sv_2mortal(newSViv(dqblk.QS_BTIME)));
-
-	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FCUR)));
-	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FSOFT)));
-	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FHARD)));
-	    PUSHs(sv_2mortal(newSViv((int) dqblk.QS_FTIME)));
+            PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bcur))));
+            PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bsoft))));
+            PUSHs(sv_2mortal(newSVnv(Q_DIV(rslt.bhard))));
+            PUSHs(sv_2mortal(newSViv(rslt.btime)));
+            PUSHs(sv_2mortal(newSVnv(rslt.fcur)));
+            PUSHs(sv_2mortal(newSVnv(rslt.fsoft)));
+            PUSHs(sv_2mortal(newSVnv(rslt.fhard)));
+            PUSHs(sv_2mortal(newSViv(rslt.ftime)));
 	  }
 #else
 	  errno = ENOSYS;

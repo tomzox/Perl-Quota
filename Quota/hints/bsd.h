@@ -9,6 +9,7 @@
  *           and Jon Schewe <schewe@tcfreenet.org>
  *   NetBSD mods and merge of *BSD-related hints provided by
  *           Jaromir Dolecek <jdolecek@NetBSD.org>
+ *   NetBSD libquota mods by David Holland <dholland@netbsd.org>
  */
 
 /*   See hints/none.h for a complete list of options with explanations */
@@ -16,7 +17,19 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <fstab.h>
+
+#if defined(__NetBSD__) && __NetBSD_Version__ >= 599004800 && __NetBSD_Version__ < 599005900
+#error "NetBSD 5.99 proplib-based quotas not supported"
+#endif
+
+#if defined(__NetBSD__) && (__NetBSD_Version__ >= 599005900) /* NetBSD 5.99.59 */
+#include <quota.h>
+/* defining this will force the XS to use the libquota API for all file systems
+ * except RPC; defines below such as Q_CTL_V2 have no effect */
+#define NETBSD_LIBQUOTA
+#else
 #include <ufs/ufs/quota.h>
+#endif
 
 #if defined(__NetBSD__) && (__NetBSD_Version__ >= 299000900) /* NetBSD 2.99.9 */
 /* NetBSD 3.0 has no statfs anymore */
@@ -58,6 +71,8 @@
 
 #define NO_MNTENT
 
+#define GQA_TYPE_USR RQUOTA_USRQUOTA
+#define GQA_TYPE_GRP RQUOTA_GRPQUOTA
 #define GQR_STATUS status
 #define GQR_RQUOTA getquota_rslt_u.gqr_rquota
 

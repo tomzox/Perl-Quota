@@ -33,6 +33,7 @@ else {
   warn "WARNING: No appropriate hints found for this OS: '$os - see INSTALL'\n";
 }
 
+my $extralibs = "";
 
 # check whether the Andrew File System (AFS) is installed and running
 
@@ -42,7 +43,7 @@ if ( -d "/afs" ) {
     $hasafs = '-DAFSQUOTA';
     $AFSHOME = -d "/usr/afsws" ? "/usr/afsws" : "/usr";
     $extrainc = "-I$AFSHOME/include -I$AFSHOME/include/afs";
-    $extralibs = "-L$AFSHOME/lib -L$AFSHOME/lib/afs -lsys -lrx -lrxkad -llwp";
+    $extralibs .= " -L$AFSHOME/lib -L$AFSHOME/lib/afs -lsys -lrx -lrxkad -llwp";
     $afsquota = "afsquota.o";
   }
 }
@@ -58,6 +59,12 @@ if ( $os =~ /^SunOS/ ) {
    # else {
    #   print "Configured without VxFS support\n";
    # }
+}
+
+# check whether wee are using the NetBSD quota library
+if ( ($os =~ /^NetBSD 6/) ||
+     (($os =~ /^NetBSD 5\.99\.(\d\d)/) && ($1 >= 59)) ) {
+  $extralibs .= " -lquota";
 }
 
 #-----------------------------------------------------------------------------#
