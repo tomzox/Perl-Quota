@@ -15,8 +15,8 @@
 use blib;
 use Quota;
 
-if (! -t) {
-   print STDERR "\nThis is an interactive test script - input must be a tty\nExiting now.\n";
+if (! -t STDIN || ! -t STDOUT) {
+   print STDERR "\nThis is an interactive test script - input and output must be a tty\nExiting now.\n";
    exit;
 }
 if ($ENV{AUTOMATED_TESTING}) {

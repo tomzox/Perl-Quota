@@ -1,3 +1,7 @@
+Changes in 1.7.1 (September 2013)
+- "make test" now aborts if STDOUT is not a terminal, same as already
+  for STDIN. Suggested by Alexandr Ciornii via CPAN ticket 82564.
+
 Changes in 1.7.0 (August 2013)
 - Added support for the new NetBSD 6.0 quota system (libquota)
   Thanks to David Holland and Edgar Fuss
