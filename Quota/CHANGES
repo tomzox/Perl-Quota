@@ -1,3 +1,7 @@
+Changes in 1.7.2 (May 2015)
+- Adapted platform detection for Linux 4.*
+  Thanks to C. Affolter for reporting the issue (CPAN ticket 104652)
+
 Changes in 1.7.1 (September 2013)
 - "make test" now aborts if STDOUT is not a terminal, same as already
   for STDIN. Suggested by Alexandr Ciornii via CPAN ticket 82564.
