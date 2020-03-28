@@ -9,11 +9,12 @@ This works both for locally mounted file systems and network file systems (via
 RPC, i.e. Remote Procedure Call). The interface is designed to be independent
 of UNIX flavours as well as file system types.
 
-I started developing this module while working as a UNIX system administrator
-in 1995 (while being a CS student at university). Since then it was continually
-improved and ported to more and more UNIX platforms and filesystems. Numerous
-people have contributed to this process; for a complete list of names please
-see the CHANGES document in the repository.
+I started developing this module 1995 while working as a UNIX system
+administrator at university; I'm no longer working in this capacity, but still
+updating the module on request. Since its beginnings, it was continuously
+extended by porting to more UNIX platforms and filesystems. Numerous people
+have contributed to this process; for a complete list of names please see the
+CHANGES document in the repository.
 
 The quota module was in the public domain 1995 to 2001. Since 2001 it is
 licensed under the same terms as Perl itself, which is (at your choice) either

@@ -1,8 +1,8 @@
-Copyright (C) 1995-2020 Th. Zoerner
+Copyright (C) 1995-2020 T. Zoerner (tomzo AT users.sourceforge.net)
 
-This software is provided under the same license as Perl, which means it is
-free software. You can redistribute it and/or modify it under the terms of
-either:
+This software is provided under the same license as Perl: https://dev.perl.org/licenses/
+
+It is free software; you can redistribute it and/or modify it under the terms of either:
 
 a) the GNU General Public License (https://dev.perl.org/licenses/gpl1.html)
    as published by the Free Software Foundation; either version 1, or
