@@ -23,6 +23,9 @@ License.  For a copy of these licenses see
 <http://www.opensource.org/licenses/>.  The respective authors of the source
 code are its owner in regard to copyright.
 
+Since April 2020 there's also a [Python port](https://github.com/tomzox/Python-Quota)
+of this module, with its official home at [PyPi](https://pypi.org/project/FsQuota/).
+
 ## Module information
 
 Perl DLSIP-Code: Rcdfg
@@ -34,18 +37,27 @@ Perl DLSIP-Code: Rcdfg
 * licensed under the Perl Artistic License or (at your option)
   version 1 or later of the GNU General Public License
 
-List of supported operating systems and file systems:
+List of supported operating systems:
 
 * SunOS 4.1.3
 * Solaris 2.4 - 2.10
 * HP-UX 9.0x & 10.10 & 10.20 & 11.00
 * IRIX 5.2 & 5.3 & 6.2 - 6.5
 * OSF/1 & Digital Unix 4
-* BSDi 2, FreeBSD 3.x - 4.9, OpenBSD & NetBSD (no RPC)
-* Linux - kernel 2.0.30 and later, incl. Quota API v2 and XFS
+* BSDi 2, FreeBSD 3.x - 4.9, OpenBSD & NetBSD
+* Linux - kernel 2.0.30 and later
 * AIX 4.1, 4.2 and 5.3
+
+List of supported file systems:
+
+* Standard file systems of the platforms listed above
+* NFS (Network file system) on all of the above
+* XFS on Linux and IRIX 6
 * AFS (Andrew File System) on many of the above (see INSTALL)
-* VxFS (Veritas File System) on Solaris 2.
+* VxFS (Veritas File System) on Solaris 2
+
+All of these operating systems and file systems are supported
+transparently through a common API.
 
 ## Documentation
 
