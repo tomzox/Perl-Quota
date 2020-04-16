@@ -1,0 +1,12 @@
+language: perl
+perl:
+  - "5.30"
+  - "5.20"
+script: "perl Makefile.PL && make test"
+os:
+  - freebsd
+  - linux
+notifications:
+  email:
+    on_success: always
+    on_failure: always
