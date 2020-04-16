@@ -1,11 +1,12 @@
 language: perl
 perl:
   - "5.30"
-  - "5.20"
+install:
+    - cpanm -v --installdeps --notest .
 script: "perl Makefile.PL && make test"
 os:
-  - freebsd
   - linux
+  - freebsd
 notifications:
   email:
     on_success: always
