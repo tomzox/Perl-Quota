@@ -44,8 +44,8 @@ List of supported operating systems:
 * HP-UX 9.0x & 10.10 & 10.20 & 11.00
 * IRIX 5.2 & 5.3 & 6.2 - 6.5
 * OSF/1 & Digital Unix 4
-* BSDi 2, FreeBSD 3.x - 4.9, OpenBSD & NetBSD
-* Linux - kernel 2.0.30 and later
+* FreeBSD 3 - 12.1, OpenBSD 2.2 - 6.6 & NetBSD 5 - 9,
+* Linux - kernel 2.0.30 - 4.15
 * AIX 4.1, 4.2 and 5.3
 
 List of supported file systems:
