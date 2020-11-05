@@ -16,7 +16,6 @@
 package Quota;
 
 require Exporter;
-use AutoLoader;
 require DynaLoader;
 
 @ISA = qw(Exporter DynaLoader);
