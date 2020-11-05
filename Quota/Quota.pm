@@ -17,14 +17,14 @@ package Quota;
 
 require Exporter;
 use AutoLoader;
-require DynaLoader;
+use XSLoader ();
 
-@ISA = qw(Exporter DynaLoader);
+@ISA = qw(Exporter);
 @EXPORT = ();
 
 $VERSION = '1.8.1';
 
-bootstrap Quota;
+XSLoader::load( 'Quota', $VERSION );
 
 use Carp;
 use strict;
